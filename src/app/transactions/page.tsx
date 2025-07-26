@@ -8,6 +8,7 @@ import { ITransaction, TransactionStatus } from '@/types';
 import TransactionsStats from '@/components/TransactionsStats';
 import { useTransactionStatus } from '@/hooks/useTransactionStatus';
 import { useWallet } from '@/context/WalletContext';
+import Loader from '@/components/Loader';
 
 
 // type Transaction = {
@@ -26,7 +27,7 @@ import { useWallet } from '@/context/WalletContext';
 //   description: string;
 // };
 
-const transactionStatus = ["pending", "processing", "completed", "failed"]
+const tnxStatus = ["pending", "processing", "completed", "failed"]
 
 export default function Transactions() {
   const [filter, setFilter] = useState('all');
@@ -63,7 +64,7 @@ export default function Transactions() {
         }
         
         const batchResults = await Promise.all(batchPromises);
-        batchResults.forEach(([tx, isConfirmed], index) => {
+        batchResults.forEach(([tx, isConfirmed]) => {
           txArray.push({
             to: tx.to,
             title: "Payment to vendor for services",
@@ -93,9 +94,8 @@ export default function Transactions() {
 
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+  }, [fetchTransactions, contract, currentAddress]);
 
-   const tnxStatus = ["pending", "processing", "completed", "failed"]
   const filteredTransactions = transactions.filter(tx => {
     if (filter === 'all') return true;
     return tnxStatus[tx.status] === filter;
@@ -157,8 +157,8 @@ export default function Transactions() {
       const receipt = await tx.wait();
 
       if (receipt.status === 1 && provider) {
-        const block: any = await provider.getBlock(receipt.blockNumber);
-        const timestamp = block.timestamp;
+        const block: ethers.Block | null = await provider.getBlock(receipt.blockNumber);
+        const timestamp = block!.timestamp;
 
         saveStatus(txIndex, 'executed');
 
@@ -182,14 +182,13 @@ export default function Transactions() {
       saveStatus(txIndex, 'execute-failed');
       throw error;
     }
-  }, [contract, saveStatus, getStatus]);
+  }, [contract, provider, saveStatus, getStatus]);
 
 
  
 
   return (
     <div className="space-y-6">
-
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Transactions</h1>
@@ -198,31 +197,6 @@ export default function Transactions() {
 
         <TransactionsFilter filter={filter} setFilter={setFilter} />
       </div>
-
-      {/* Stats
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard 
-          icon={<Clock className="h-8 w-8 text-yellow-500" />} 
-          label="Pending" 
-          value="2" 
-        />
-        <StatsCard 
-          icon={<CheckCircle className="h-8 w-8 text-green-500" />} 
-          label="Completed" 
-          value="18" 
-        />
-        <StatsCard 
-          icon={<XCircle className="h-8 w-8 text-red-500" />} 
-          label="Failed" 
-          value="3" 
-        />
-        <StatsCard 
-          icon={<Send className="h-8 w-8 text-blue-500" />} 
-          label="Total Volume" 
-          value="1,247 ETH" 
-        />
-      </div> */}
-
       <TransactionsStats refreshKey={refreshCount} />
 
       {/* Transactions List */}
@@ -230,7 +204,7 @@ export default function Transactions() {
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Transaction History</h2>
         </div>
-
+        {loading && <Loader />}
         <div className="divide-y divide-gray-700">
           {currentTransactions.map((tx) => (
             <TransactionCard

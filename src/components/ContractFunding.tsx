@@ -5,12 +5,6 @@ import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 import Input from "./Input";
 import Label from "./Label";
 
-interface ContractFundingProps {
-  contractAddress: string;
-  contractAbi: any[];
-}
-
-
 export default function ContractFunding() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);

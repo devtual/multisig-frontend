@@ -15,7 +15,7 @@ declare global {
 export default function WalletDashboard() {
   const [refreshCount, setRefreshCount] = useState(0);
 
-  const onTransactionExecuted = async (pending: number) => {
+  const onTransactionExecuted = async () => {
     setRefreshCount((prev) => prev + 1);
   };
   
