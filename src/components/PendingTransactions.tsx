@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Clock } from "lucide-react";
-import { useTransactionStatus } from "../hooks/useTransactionStatus";
-import { useWallet } from "../context/WalletContext";
+import { useTransactionStatus } from "@/hooks/useTransactionStatus";
+import { useWallet } from "@/context/WalletContext";
 
 interface Transaction {
   to: string;

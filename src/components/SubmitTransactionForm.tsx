@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { ethers } from "ethers";
-import Link from "next/link";
 import { Send } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./Card";
 import Input from "./Input";
 import Label from "./Label";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
+import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 
 type Props = {
 };

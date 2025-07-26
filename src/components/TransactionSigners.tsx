@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "./Card"
 import { Users } from 'lucide-react'
-import { MultiSigWallet } from '../helpers/MultiSigWallet'
+import { MultiSigWallet } from '@/helpers/MultiSigWallet'
 
 export default function TransactionSigners() {
   const [owners, setOwners] = useState<{ address: string; name: string }[]>([]);

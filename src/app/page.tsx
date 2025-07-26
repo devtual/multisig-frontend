@@ -2,8 +2,8 @@
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import PendingTransactions from "../../components/PendingTransactions";
-import TransactionsStats from "../../components/TransactionsStats";
+import PendingTransactions from "@/components/PendingTransactions";
+import TransactionsStats from "@/components/TransactionsStats";
 import { useState } from "react";
 
 declare global {

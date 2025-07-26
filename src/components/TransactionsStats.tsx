@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { CheckCircle, Clock, Shield, Wallet } from "lucide-react";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
+import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 
 
 export default function TransactionsStats({ refreshKey }: { refreshKey: number }) {

@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
-import { Wallet, Shield, FileText, Settings, Plus, Home } from 'lucide-react';
+import { Wallet, Shield, FileText, Home } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { MultiSigWallet } from '../helpers/MultiSigWallet';
 
 const navItems = [
     { path: '/', icon: Home, label: 'Dashboard' },

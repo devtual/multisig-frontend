@@ -2,7 +2,7 @@
 "use client"
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { contractAbi, contractAddress } from "../config";
+import { contractAbi, contractAddress } from "@/config";
 
 export default function TransactionForm() {
   const [to, setTo] = useState("");

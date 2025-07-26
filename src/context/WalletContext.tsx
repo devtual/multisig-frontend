@@ -1,4 +1,3 @@
-// context/WalletContext.tsx
 import { createContext, useContext } from "react";
 import { ethers } from "ethers";
 

@@ -1,13 +1,14 @@
 "use client"
 import React, { useCallback, useEffect, useState } from 'react';
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react';
-import { TransactionsFilter } from '../../../components/TransactionsFilter';
-import { TransactionCard } from '../../../components/TransactionCard';
+import { TransactionsFilter } from '@/components/TransactionsFilter';
+import { TransactionCard } from '@/components/TransactionCard';
 import { ethers } from 'ethers';
-import { ITransaction, TransactionStatus } from '../../../types';
-import TransactionsStats from '../../../components/TransactionsStats';
-import { useTransactionStatus } from '../../../hooks/useTransactionStatus';
-import { useWallet } from '../../../context/WalletContext';
+import { ITransaction, TransactionStatus } from '@/types';
+import TransactionsStats from '@/components/TransactionsStats';
+import { useTransactionStatus } from '@/hooks/useTransactionStatus';
+import { useWallet } from '@/context/WalletContext';
+
 
 // type Transaction = {
 //   id: string;

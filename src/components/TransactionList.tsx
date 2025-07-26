@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
+import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 
 interface Transaction {
   to: string;

@@ -1,8 +1,6 @@
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import TransactionSigners from "../../../components/TransactionSigners";
-import TransactionTimeline from "../../../components/TransactionTimeline";
-import SubmitTransactionForm from "../../../components/SubmitTransactionForm";
+import TransactionSigners from "@/components/TransactionSigners";
+import TransactionTimeline from "@/components/TransactionTimeline";
+import SubmitTransactionForm from "@/components/SubmitTransactionForm";
 
 export default function SendTransaction() {
     return (

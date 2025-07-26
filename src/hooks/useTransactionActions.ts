@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useTransactionStatus } from './useTransactionStatus';
-import { useWallet } from '../context/WalletContext';
+import { useWallet } from '@/context/WalletContext';
 
 type TransactionCallbacks = {
   onConfirmed?: (txIndex: number) => void;

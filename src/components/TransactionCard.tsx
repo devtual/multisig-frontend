@@ -1,8 +1,7 @@
-import { TransactionTypeIcon } from './TransactionTypeIcon';
 import { TransactionStatusIcon } from './TransactionStatusIcon';
 import { TransactionStatusBadge } from './TransactionStatusBadge';
-import { ITransaction } from '../types';
-import { dateFormat } from '../helpers/common';
+import { ITransaction } from '@/types';
+import { dateFormat } from '@/helpers/common';
 
 
 type TransactionCardProps = {

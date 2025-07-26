@@ -1,7 +1,7 @@
 "use client"
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
+import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 import Input from "./Input";
 import Label from "./Label";
 

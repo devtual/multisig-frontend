@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
+import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 import { ethers } from "ethers";
 import Header from "./Header";
 import Loader from "./Loader";
-import { WalletContext } from "../context/WalletContext";
+import { WalletContext } from "@/context/WalletContext";
 
 export default function Startup({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
