@@ -40,7 +40,7 @@ export default function Transactions() {
 
   const { contract, provider, currentAddress} = useWallet();
 
-  const transactionsPerPage = 5;
+  const transactionsPerPage = 15;
 
   const fetchTransactions = useCallback(async () => {
     if (!contract || !currentAddress) return;
