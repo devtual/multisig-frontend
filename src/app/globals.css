@@ -12,6 +12,9 @@
   --color-dark-300: #1f2937;
   --color-dark-400: #020817;
   --color-dark-500: #030711;
+
+  --color-primary-400: #b575f0;
+  --color-primary-500: #9234ea;
 }
 
 @theme inline {

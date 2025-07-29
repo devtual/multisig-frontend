@@ -9,3 +9,7 @@ export function dateFormat(unixTimestamp: number): string {
 
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
+
+export function sleep(ms:number){
+  return new Promise(resolve => setTimeout(resolve, ms))
+}

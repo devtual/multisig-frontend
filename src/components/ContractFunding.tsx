@@ -1,9 +1,10 @@
 "use client"
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { MultiSigWallet } from "@/helpers/MultiSigWallet";
 import Input from "./Input";
 import Label from "./Label";
+import { useWallet } from "@/context/WalletContext";
+import { WalletProvider } from "@/lib/wallet-provider";
 
 export default function ContractFunding() {
   const [amount, setAmount] = useState("");
@@ -11,15 +12,12 @@ export default function ContractFunding() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [balance, setBalance] = useState("");
-  const [contract, setContract] = useState<ethers.Contract | null>(null)
+  const {wallet, contract} = useWallet();
   
   useEffect(() => {
     const init = async () => {
-      if (window.ethereum) {
-        const wallet = MultiSigWallet.getInstance();
-        const contract = await wallet.getContract();
+      if (WalletProvider.isAvailable() && wallet) {
         const balance = await wallet.getAccountBalance();
-        setContract(contract);
         setBalance(balance)
       }
     }
@@ -43,9 +41,7 @@ export default function ContractFunding() {
       }
 
       const amountWei = ethers.parseEther(amount);
-      
 
-      // Send transaction
       if(contract){
 
         const tx = await contract.fund({
@@ -100,7 +96,7 @@ export default function ContractFunding() {
         onClick={fundContract}
         disabled={loading}
         className={`w-full py-2 px-4 rounded-md text-white ${
-          loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          loading ? "bg-primary-500/80 cursor-not-allowed" : "bg-primary-500 hover:bg-primary-500/80"
         }`}
       >
         {loading ? "Processing..." : "Send ETH to Contract"}

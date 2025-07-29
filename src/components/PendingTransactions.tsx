@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowRight, Clock } from "lucide-react";
 import { useTransactionStatus } from "@/hooks/useTransactionStatus";
 import { useWallet } from "@/context/WalletContext";
+import TransactionService from "@/services/transaction-service";
 
 interface Transaction {
   to: string;
@@ -16,6 +17,8 @@ interface Transaction {
   txIndex: number;
   status: number
 }
+
+const transactionService = TransactionService.getInstance();
 
 export default function PendingTransactions({
   onTransactionConfirmed,
@@ -29,7 +32,7 @@ export default function PendingTransactions({
   const [refresh, setRefresh] = useState<number>(0);
   const [threshold, setThreshold] = useState<number>(0);
   const { saveStatus, getStatus } = useTransactionStatus();
-  const { contract, currentAddress } = useWallet(); 
+  const { wallet, contract, currentAddress } = useWallet(); 
 
   const handleConfirm = useCallback(async (txIndex: number) => {
     const currentStatus = getStatus(txIndex)?.status || '';
@@ -98,19 +101,23 @@ export default function PendingTransactions({
   }, [contract, saveStatus, getStatus, onTransactionExecuted]);
 
   const fetchTransactions = useCallback(async () => {
-  if (!contract || !currentAddress) return;
+  if (!wallet || !contract || !currentAddress) return;
   
   setLoading(true);
   try {
     const txArray = await contract.getPendingTransactions(15);
+    const txRecords = await transactionService.getAllRecords();
     
     const processedTransactions = await Promise.all(
-      txArray.map(async (tx: Transaction, index:number) => {
-        console.log("tx", tx.status)
+      txArray.map(async (tx: Transaction) => {
+        const txRecord = txRecords.find(r => r.txIndex === Number(tx.txIndex));
+        const title = txRecord?.title || "Untitled";
+
         const isConfirmed = await contract.isConfirmed(tx.txIndex, currentAddress);
         return {
           to: tx.to,
           value: ethers.formatEther(tx.value),
+          title,
           data: tx.data,
           executed: tx.executed,
           numConfirmations: Number(tx.numConfirmations),
@@ -152,7 +159,7 @@ export default function PendingTransactions({
               ({transactions.length})
             </span>
           </h2>
-          <Link href="/transactions" className="text-blue-400 hover:text-blue-300 flex items-center">
+          <Link href="/transactions" className="text-primary-400 hover:text-primary-400/80 flex items-center">
             View All <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
@@ -185,7 +192,7 @@ export default function PendingTransactions({
                     <button
                       onClick={() => handleConfirm(tx.txIndex)}
                       disabled={txStatus?.includes('confirming') || loading}
-                      className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                      className="text-sm cursor-pointer text-primary-400 hover:text-primary-400/80 py-1"
                     >
                             {txStatus?.includes('confirming') ? "Confirming..." : "Sign Transaction"}
 
@@ -197,7 +204,7 @@ export default function PendingTransactions({
                       onClick={() => handleExecute(tx.txIndex)}
                             disabled={txStatus?.includes('executing') || loading}
 
-                      className="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                      className="text-sm cursor-pointer text-green-400 hover:text-green-300 py-1"
                     >
                             {txStatus?.includes('executing') ? "Executing..." : "Execute"}
 

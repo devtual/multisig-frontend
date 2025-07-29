@@ -1,16 +1,17 @@
 "use client"
 import { useEffect, useState } from "react";
-import { CheckCircle, Clock, Shield, Wallet } from "lucide-react";
-import { MultiSigWallet } from "@/helpers/MultiSigWallet";
+import { CheckCircle, Clock, Send, Wallet } from "lucide-react";
+import { useWallet } from "@/context/WalletContext";
 
 
 export default function TransactionsStats({ refreshKey }: { refreshKey: number }) {
-  const wallet = MultiSigWallet.getInstance();
+  const {wallet} = useWallet();
   const [stats, setStats] = useState({
     contractBalance: "0",
     totalValue: "0",
-    pendingTransactions: 0,
-    executedTransactions: 0
+    pendingTxs: 0,
+    executedTxs: 0,
+    failedTxs: 0
   });
 
 
@@ -19,16 +20,18 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
         const {
           contractBalance,
           totalValue,
-          totalTransactions,
-          pendingTransactions,
-          executedTransactions,
-        } = await wallet.getTransactionStats();
+          totalTxs,
+          pendingTxs,
+          executedTxs,
+          failedTxs
+        } = await wallet!.getTransactionStats();
 
         const formattedStats = {
           contractBalance,
           totalValue,
-          pendingTransactions,
-          executedTransactions
+          pendingTxs,
+          executedTxs,
+          failedTxs
         };
 
         setStats(formattedStats)
@@ -43,7 +46,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <div className="flex items-center">
-            <Wallet className="h-8 w-8 text-blue-500" />
+            <Wallet className="h-8 w-8 text-primary-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Contract Balance</p>
               <p className="text-2xl font-bold text-white">{stats.contractBalance} ETH</p>
@@ -53,7 +56,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
 
         <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
           <div className="flex items-center">
-            <Shield className="h-8 w-8 text-green-500" />
+            <Send className="h-8 w-8 text-green-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Total Balance</p>
               <p className="text-2xl font-bold text-white">{stats.totalValue} ETH</p>
@@ -66,7 +69,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
             <Clock className="h-8 w-8 text-yellow-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Pending</p>
-              <p className="text-2xl font-bold text-white">{stats.pendingTransactions}</p>
+              <p className="text-2xl font-bold text-white">{stats.pendingTxs}</p>
             </div>
           </div>
         </div>
@@ -76,7 +79,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
             <CheckCircle className="h-8 w-8 text-emerald-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Completed</p>
-              <p className="text-2xl font-bold text-white">{stats.executedTransactions}</p>
+              <p className="text-2xl font-bold text-white">{stats.executedTxs}</p>
             </div>
           </div>
         </div>

@@ -65,6 +65,7 @@ export const TransactionCard = ({
                   <button
                     onClick={() => onConfirm?.(transaction.txIndex)}
                     disabled={status?.includes("confirming")}
+                    className='text-sm cursor-pointer text-primary-400 hover:text-primary-400/80 py-1'
                   >
                     {status?.includes("confirming") ? "Confirming..." : "Sign Transaction"}
                   </button>
@@ -73,6 +74,7 @@ export const TransactionCard = ({
                   <button
                     onClick={() => onExecute?.(transaction.txIndex)}
                     disabled={status?.includes("executing")}
+                    className='text-sm cursor-pointer text-green-400 hover:text-green-300 py-1'
                   >
                     {status?.includes("executing") ? "Executing..." : "Execute"}
                   </button>

@@ -11,10 +11,17 @@ export type ITransaction = {
     timestamp: number;
 }
 
-
 export enum TransactionStatus {
     Pending,
     Processing,
     Completed,
     Failed
+}
+
+export type ITransactionRecord = {
+  txIndex: number;
+  title: string;
+  txHash: string;
+  submittedBy: string;
+  timestamp?: Date;
 }

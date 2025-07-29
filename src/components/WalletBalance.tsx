@@ -1,20 +1,16 @@
 "use client"
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { MultiSigWallet } from "../helpers/MultiSigWallet";
 
 export default function WalletBalance({ contract }: { contract: ethers.Contract }) {
   const [balance, setBalance] = useState<string>("0");
 
   useEffect(() => {
-    
     const fetchBalance = async () => {
-            if (window.ethereum) {
-
-      
-      const bal = await contract.getBalance();
-      setBalance(ethers.formatEther(bal));
-        }
+      if (window.ethereum) {
+        const bal = await contract.getBalance();
+        setBalance(ethers.formatEther(bal));
+      }
     };
     fetchBalance();
   }, [contract]);

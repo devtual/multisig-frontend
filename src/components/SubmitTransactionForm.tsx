@@ -6,13 +6,17 @@ import { Send } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./Card";
 import Input from "./Input";
 import Label from "./Label";
-import { MultiSigWallet } from "@/helpers/MultiSigWallet";
+import { useWallet } from "@/context/WalletContext";
+import { sleep } from "@/helpers/common";
+import TransactionService from "@/services/transaction-service";
 
 type Props = {
 };
 
+const transactionService = TransactionService.getInstance();
+
 const SubmitTransactionForm: React.FC<Props> = () => {
-    const wallet = MultiSigWallet.getInstance();
+  const { wallet, contract, currentAddress } = useWallet();
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -24,6 +28,9 @@ const SubmitTransactionForm: React.FC<Props> = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!wallet || !contract) return;
+
     setLoading(true);
     setMessage(null);
 
@@ -35,20 +42,70 @@ const SubmitTransactionForm: React.FC<Props> = () => {
       }
 
       const valueInWei = ethers.parseEther(amount);
-
-      const contract = await wallet.getContract();
-
       const tx = await contract.submitTransaction(recipient, valueInWei, "0x");
-      await tx.wait();
+      const txHash = tx.hash;
+      const receipt = await tx.wait();
+
+
+      const event = receipt.logs?.find((log: ethers.Log) => {
+        try {
+          return contract.interface.parseLog(log)?.name === "SubmitTransaction";
+        } catch {
+          return false;
+        }
+      });
+
+      if (!event) {
+        throw new Error("Could not find SubmitTransaction event in receipt");
+      }
+
+      const parsedEvent: any = contract.interface.parseLog(event);
+      console.log(typeof parsedEvent.args.txIndex);
+
+      const txIndex = Number(parsedEvent.args.txIndex);
+
+      if (typeof txIndex !== "number" || isNaN(txIndex)) {
+        throw new Error("Could not retrieve transaction index from event");
+      }
+
+      await saveRecord(txIndex, title, txHash);
 
       setMessage({ type: "success", text: "Transaction submitted successfully!" });
-      setFormData({ title: "", amount: "", recipient: "" });
+      // setFormData({ title: "", amount: "", recipient: "" });
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Transaction failed" });
     } finally {
       setLoading(false);
     }
   };
+
+  const saveRecord = async (txIndex: number, title: string, txHash: string, attemptsLeft = 5) => {
+    const saved = await transactionService.saveRecord({ txIndex, title, txHash, submittedBy: currentAddress })
+    if (!saved) {
+      console.warn(`❗️ Failed to save record (attempts left: ${attemptsLeft - 1})`);
+
+      if (attemptsLeft > 1) {
+        await sleep(1000);
+        return saveRecord(txIndex, title, txHash, attemptsLeft - 1);
+      } else {
+        // const fallbackKey = "failed-transactions";
+
+        // const data = {
+        //   txIndex,
+        //   title,
+        //   txHash,
+        //   submittedBy: currentAddress,
+        //   timestamp: new Date().toISOString(),
+        // };
+
+        // const existing = localStorage.getItem(fallbackKey);
+        // const txArray = existing ? JSON.parse(existing) : [];
+
+        // txArray.push(data);
+        // localStorage.setItem(fallbackKey, JSON.stringify(txArray));
+      }
+    }
+  }
 
   return (
     <Card>
@@ -105,7 +162,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 bg-black text-white px-4 py-2 rounded-md disabled:opacity-50"
+              className="flex items-center justify-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-md disabled:opacity-50"
               disabled={loading}
             >
               <Send className="h-4 w-4" />

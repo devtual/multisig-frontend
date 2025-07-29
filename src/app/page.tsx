@@ -29,7 +29,7 @@ export default function WalletDashboard() {
         </div>
         <Link
           href="/send-transaction"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+          className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Send Transaction

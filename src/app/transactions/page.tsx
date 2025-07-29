@@ -1,5 +1,5 @@
 "use client"
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TransactionsFilter } from '@/components/TransactionsFilter';
 import { TransactionCard } from '@/components/TransactionCard';
@@ -8,104 +8,119 @@ import { ITransaction, TransactionStatus } from '@/types';
 import TransactionsStats from '@/components/TransactionsStats';
 import { useTransactionStatus } from '@/hooks/useTransactionStatus';
 import { useWallet } from '@/context/WalletContext';
-import Loader from '@/components/Loader';
+import TransactionService from '@/services/transaction-service';
 
-
-// type Transaction = {
-//   id: string;
-//   type: string;
-//   to: string;
-//   from: string;
-//   amount: string;
-//   status: string;
-//   signatures?: {
-//     current: number;
-//     required: number;
-//   };
-//   timestamp: string;
-//   hash: string;
-//   description: string;
-// };
-
-const tnxStatus = ["pending", "processing", "completed", "failed"]
+const tnxStatus = ["pending", "processing", "completed", "failed"];
+const transactionService = TransactionService.getInstance();
 
 export default function Transactions() {
   const [filter, setFilter] = useState('all');
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
+  const [transactionsCache, setTransactionsCache] = useState<Map<number, ITransaction[]>>(new Map());
+  const [tnxCount, setTnxCount] = useState(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [threshold, setThreshold] = useState<number>(0);
   const { saveStatus, getStatus } = useTransactionStatus();
   const [refreshCount, setRefreshCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const hasFetchedRef = useRef(false);
 
-  const { contract, provider, currentAddress} = useWallet();
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 10;
 
-  const transactionsPerPage = 15;
 
-  const fetchTransactions = useCallback(async () => {
-    if (!contract || !currentAddress) return;
+  const { wallet, contract, provider, currentAddress } = useWallet();
 
-    try {
-      const count = Number(await contract.getTransactionCount());
-      const batchSize = 50;
-      const txArray: ITransaction[] = [];
-      
-      for (let i = 0; i < count; i += batchSize) {
-        const batchEnd = Math.min(i + batchSize, count);
-        const batchPromises = [];
-        
-        for (let j = i; j < batchEnd; j++) {
-          batchPromises.push(
-            Promise.all([
-              contract.getTransaction(j),
-              contract.isConfirmed(j, currentAddress)
-            ])
-          );
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!contract || !wallet || !currentAddress) return;
+
+      if (transactionsCache.has(currentPage)) {
+        setTransactions(transactionsCache.get(currentPage)!);
+        return;
+      }
+
+      setLoading(true);
+      const offset = (currentPage - 1) * pageSize;
+
+      try {
+        const [countRaw, txRecords] = await Promise.all([
+          contract.transactionCount(),
+          transactionService.getAllRecords(),
+        ]);
+
+        const count = Number(countRaw);
+        setTnxCount(count);
+        const limit = Math.min(pageSize, count - offset);
+        if (offset >= count) {
+          setHasMore(false);
+          return;
         }
-        
-        const batchResults = await Promise.all(batchPromises);
-        batchResults.forEach(([tx, isConfirmed]) => {
-          txArray.push({
+
+        const txBatch = await contract.getTransactions(offset, limit);
+        const confirmationPromises = txBatch.map((tx: ITransaction) =>
+          contract.isConfirmed(tx.txIndex, currentAddress)
+        );
+        const confirmations = await Promise.all(confirmationPromises);
+
+        const txArray: ITransaction[] = txBatch.map((tx: any, i:number) => {
+          const txRecord = txRecords.find(r => r.txIndex === Number(tx.txIndex));
+
+          const title = txRecord?.title || "Untitled";
+          return {
+            txIndex: Number(tx.txIndex),
             to: tx.to,
-            title: "Payment to vendor for services",
             value: ethers.formatEther(tx.value),
             data: tx.data,
             executed: tx.executed,
+            failed: tx.failed,
             numConfirmations: Number(tx.numConfirmations),
-            txIndex: Number(tx.txIndex),
-            isConfirmed,
+            isConfirmed: confirmations[i], // ✅ index match
+            title,
             status: tx.status,
-            timestamp: tx.timestamp
-          })
-        })
+            timestamp: Number(tx.timestamp),
+          };
+        });
+
+        txArray.sort((a, b) => b.timestamp - a.timestamp);
+
+        setTransactionsCache(prev => {
+          const newCache = new Map(prev);
+          newCache.set(currentPage, txArray);
+          return newCache;
+        });
+
+        setTransactions(txArray);
+        setHasMore(offset + limit < count);
+
+        const _threshold = await contract.threshold();
+        setThreshold(Number(_threshold));
+      } catch (err) {
+        console.error("Pagination error:", err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setTransactions(txArray);
-
-      const _threshold = await contract.threshold();
-      setThreshold(Number(_threshold));
-
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-    } finally {
-      setLoading(false);
+    if (!hasFetchedRef.current) {
+      fetchData();
+      hasFetchedRef.current = true;
     }
-  }, []);
+  }, [contract, wallet, currentAddress, currentPage]);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions, contract, currentAddress]);
+  const handleNext = () => {
+    if (hasMore) {
+      hasFetchedRef.current = false;
+      setCurrentPage(prev => prev + 1);
+    }
+  };
 
-  const filteredTransactions = transactions.filter(tx => {
-    if (filter === 'all') return true;
-    return tnxStatus[tx.status] === filter;
-  });
+  const handlePrevious = () => {
+    hasFetchedRef.current = false;
+    setHasMore(true)
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
 
-  // Pagination logic
-  const indexOfLastTx = currentPage * transactionsPerPage;
-  const indexOfFirstTx = indexOfLastTx - transactionsPerPage;
-  const currentTransactions = filteredTransactions.slice(indexOfFirstTx, indexOfLastTx);
-  const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage);
 
   const handleConfirm = useCallback(async (txIndex: number) => {
     const currentStatus = getStatus(txIndex)?.status || '';
@@ -157,8 +172,8 @@ export default function Transactions() {
       const receipt = await tx.wait();
 
       if (receipt.status === 1 && provider) {
-        const block: ethers.Block | null = await provider.getBlock(receipt.blockNumber);
-        const timestamp = block!.timestamp;
+        const block: any = await provider.getBlock(receipt.blockNumber);
+        const timestamp = block.timestamp;
 
         saveStatus(txIndex, 'executed');
 
@@ -182,13 +197,20 @@ export default function Transactions() {
       saveStatus(txIndex, 'execute-failed');
       throw error;
     }
-  }, [contract, provider, saveStatus, getStatus]);
+  }, [contract, saveStatus, getStatus]);
+
+  const filteredTnx = transactions.filter(tx => {
+    if (filter === 'all') return true;
+    return tnxStatus[tx.status] === filter;
+  });
+
+  const totalPages = Math.ceil(tnxCount / pageSize);
 
 
- 
 
   return (
     <div className="space-y-6">
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Transactions</h1>
@@ -198,15 +220,14 @@ export default function Transactions() {
         <TransactionsFilter filter={filter} setFilter={setFilter} />
       </div>
       <TransactionsStats refreshKey={refreshCount} />
-
-      {/* Transactions List */}
+      
       <div className="bg-gray-800 rounded-lg border border-gray-700">
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Transaction History</h2>
         </div>
-        {loading && <Loader />}
+
         <div className="divide-y divide-gray-700">
-          {currentTransactions.map((tx) => (
+          {filteredTnx.map((tx) => (
             <TransactionCard
               key={tx.txIndex}
               transaction={tx}
@@ -217,38 +238,35 @@ export default function Transactions() {
             />
           ))}
         </div>
-        {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-6 p-6">
-                <span className="text-sm text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className='flex gap-8 items-center'>
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className={`flex items-center gap-1 text-sm ${
-                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                    }`}
-                  >
-                    <ChevronLeft className="h-4 w-4" /> Previous
-                  </button>
-                  
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className={`flex items-center gap-1 text-sm ${
-                      currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                    }`}
-                  >
-                    Next <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            )}
+        {totalPages > 1 ? (
+          <div className="flex justify-between items-center mt-6 p-6">
+            <span className="text-sm text-gray-400">
+              Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex gap-8 items-center">
+              <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className={`flex items-center gap-1 text-sm ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+              >
+                <ChevronLeft className="h-4 w-4" /> Previous
+              </button>
+
+              <button
+                onClick={handleNext}
+                disabled={totalPages === currentPage}
+                className={`flex items-center gap-1 text-sm ${totalPages === currentPage ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+              >
+                Next <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ) : null}
+
       </div>
 
       {/* Empty State */}
-      {filteredTransactions.length === 0 && (
+      {filteredTnx.length === 0 && (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-gray-500 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">No transactions found</h3>

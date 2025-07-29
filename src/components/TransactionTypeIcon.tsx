@@ -11,7 +11,7 @@ export const TransactionTypeIcon = ({ type }: TransactionTypeIconProps) => {
     case 'incoming':
       return <ArrowDownLeft className="h-4 w-4 text-green-400" />;
     case 'contract':
-      return <FileText className="h-4 w-4 text-blue-400" />;
+      return <FileText className="h-4 w-4 text-primary-400" />;
     default:
       return <Send className="h-4 w-4 text-gray-400" />;
   }
