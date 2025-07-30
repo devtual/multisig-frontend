@@ -221,7 +221,7 @@ export default function Transactions() {
           <p className="text-gray-400 mt-2">View and manage all wallet transactions</p>
         </div>
 
-        <TransactionsFilter filter={filter} setFilter={setFilter} />
+        {/* <TransactionsFilter filter={filter} setFilter={setFilter} /> */}
       </div>
       <TransactionsStats refreshKey={refreshCount} />
       
