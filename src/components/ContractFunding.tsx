@@ -12,7 +12,7 @@ export default function ContractFunding() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [balance, setBalance] = useState("");
-  const {wallet, contract} = useWallet();
+  const {wallet, contract, isDeployer} = useWallet();
   
   useEffect(() => {
     const init = async () => {
@@ -26,6 +26,8 @@ export default function ContractFunding() {
   },[])
 
   const fundContract = async () => {
+    if(!isDeployer) return;
+    
     if (!amount || isNaN(Number(amount))) {
       setError("Please enter a valid amount");
       return;

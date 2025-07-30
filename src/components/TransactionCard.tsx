@@ -10,6 +10,7 @@ type TransactionCardProps = {
   onConfirm?: (txIndex: number) => void;
   onExecute?: (txIndex: number) => void;
   status?: string;
+  isOwner: boolean;
 };
 
 const tnxStatus = ["pending", "processing", "completed", "failed"];
@@ -19,7 +20,8 @@ export const TransactionCard = ({
   threshold,
   onConfirm,
   onExecute,
-  status
+  status,
+  isOwner
 }: TransactionCardProps) => {
   const shortenedAddress = (address: string) =>
     typeof address === 'string' && address.startsWith('0x')
@@ -57,10 +59,7 @@ export const TransactionCard = ({
                   Signatures: {transaction.numConfirmations}/{threshold}
                 </span>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                
-
-
+              {isOwner && <div className="flex flex-col items-end gap-2">
                 {!transaction.isConfirmed && (
                   <button
                     onClick={() => onConfirm?.(transaction.txIndex)}
@@ -79,8 +78,7 @@ export const TransactionCard = ({
                     {status?.includes("executing") ? "Executing..." : "Execute"}
                   </button>
                 )}
-
-              </div>
+              </div>}
             </>
           }
         </div>

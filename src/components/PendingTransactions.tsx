@@ -32,9 +32,11 @@ export default function PendingTransactions({
   const [refresh, setRefresh] = useState<number>(0);
   const [threshold, setThreshold] = useState<number>(0);
   const { saveStatus, getStatus } = useTransactionStatus();
-  const { wallet, contract, currentAddress } = useWallet(); 
+  const { wallet, contract, currentAddress, isOwner } = useWallet(); 
 
   const handleConfirm = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+
     const currentStatus = getStatus(txIndex)?.status || '';
     if (currentStatus.includes('confirming')) return;
 
@@ -71,6 +73,8 @@ export default function PendingTransactions({
   }, [saveStatus, getStatus, onTransactionConfirmed]);
 
   const handleExecute = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+    
     const currentStatus = getStatus(txIndex)?.status || '';
     if (currentStatus.includes('executing')) return;
 
@@ -184,7 +188,7 @@ export default function PendingTransactions({
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                {isOwner && <div className="flex flex-col items-end gap-2">
                     {(tx.isConfirmed && tx.numConfirmations !== threshold) && <p className="text-yellow-500">Pending</p>}
           
               
@@ -210,7 +214,7 @@ export default function PendingTransactions({
 
                     </button>
                   )}
-                </div>
+                </div>}
               </div>
             )})}
           </div>

@@ -9,14 +9,27 @@ import { usePathname } from "next/navigation";
 import { WalletProvider } from "@/lib/wallet-provider";
 import { MultiSigService } from "@/services/multisig-service";
 
+type WalletState = {
+  wallet: MultiSigService | null;
+  contract: ethers.Contract | null;
+  currentAddress: string;
+  provider: ethers.Provider | null;
+  isDeployer: boolean;
+  isOwner: boolean;
+}
+
+const initialWalletState: WalletState = {
+  wallet: null,
+  contract: null,
+  currentAddress: "",
+  provider: null,
+  isDeployer: false,
+  isOwner: false
+};
 
 export default function Startup({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [wallet, setWallet] = useState<MultiSigService | null>(null);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
-  const [currentAddress, setCurrentAddress] = useState("");
-  const [provider, setProvider] = useState<ethers.Provider | null>(null);
-  const [isDeployer, setIsDeployer] = useState(false);
+  const [walletState, setWalletState] = useState<WalletState>(initialWalletState);
   const pathname = usePathname()
 
   useEffect(() => {
@@ -39,13 +52,14 @@ export default function Startup({ children }: { children: React.ReactNode }) {
       
         
       const wallet = MultiSigService.getInstance();
-      const [contract, provider, isDeployer, address] = await Promise.all([
+      const [contract, provider, isDeployer] = await Promise.all([
         wallet.getContract(),
         wallet.getProvider(),
         wallet.isDeployer(),
-        wallet.getCurrentAccount(),
       ]);
-
+      
+      const address = await wallet.getCurrentAccount();
+      const owner = await contract.isOwner(address);
       const session = await getSession();
 
       if (session?.address?.toLowerCase() !== address.toLowerCase() && pathname !== "/login") {
@@ -53,11 +67,14 @@ export default function Startup({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setWallet(wallet);
-      setContract(contract);
-      setProvider(provider);
-      setIsDeployer(isDeployer);
-      setCurrentAddress(address);
+      setWalletState({
+        wallet,
+        contract,
+        provider,
+        isDeployer,
+        currentAddress: address,
+        isOwner: owner
+      });
     } catch (error) {
       console.error("Wallet initialization failed:", error);
     } finally {
@@ -78,8 +95,10 @@ export default function Startup({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const {wallet, contract, currentAddress, provider, isDeployer, isOwner } = walletState;
+
   return (
-    <WalletContext.Provider value={{wallet, contract, currentAddress, provider, isDeployer }}>
+    <WalletContext.Provider value={{wallet, contract, currentAddress, provider, isDeployer, isOwner }}>
       <div className="min-h-screen bg-gray-900 text-white">
         <Header isDeployer={isDeployer} />
         <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

@@ -8,6 +8,7 @@ type WalletContextType = {
   provider: ethers.Provider | null;
   currentAddress: string;
   isDeployer: boolean;
+  isOwner: boolean;
 };
 
 export const WalletContext = createContext<WalletContextType>({
@@ -16,6 +17,7 @@ export const WalletContext = createContext<WalletContextType>({
   provider: null,
   currentAddress: "",
   isDeployer: false,
+  isOwner: false
 });
 
 

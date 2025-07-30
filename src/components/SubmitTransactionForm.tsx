@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ethers } from "ethers";
-import { Send } from "lucide-react";
+import { Lock, Send } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./Card";
 import Input from "./Input";
 import Label from "./Label";
@@ -16,7 +16,7 @@ type Props = {
 const transactionService = TransactionService.getInstance();
 
 const SubmitTransactionForm: React.FC<Props> = () => {
-  const { wallet, contract, currentAddress } = useWallet();
+  const { wallet, contract, currentAddress, isOwner } = useWallet();
   const [formData, setFormData] = useState({
     title: "",
     amount: "",
@@ -29,7 +29,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!wallet || !contract) return;
+    if (!wallet || !contract || !isOwner) return;
 
     setLoading(true);
     setMessage(null);
@@ -105,6 +105,20 @@ const SubmitTransactionForm: React.FC<Props> = () => {
         // localStorage.setItem(fallbackKey, JSON.stringify(txArray));
       }
     }
+  }
+
+  if(!isOwner){
+    return <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Lock className="h-5 w-5" />
+          Restricted Access
+        </CardTitle>
+        <CardDescription>
+          This section is only accessible to contract owners. 
+        </CardDescription>
+      </CardHeader>
+    </Card>
   }
 
   return (

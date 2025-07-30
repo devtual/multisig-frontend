@@ -29,7 +29,7 @@ export default function Transactions() {
   const pageSize = 10;
 
 
-  const { wallet, contract, provider, currentAddress } = useWallet();
+  const { wallet, contract, provider, currentAddress, isOwner } = useWallet();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,6 +123,8 @@ export default function Transactions() {
 
 
   const handleConfirm = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+
     const currentStatus = getStatus(txIndex)?.status || '';
     if (currentStatus.includes('confirming')) return;
 
@@ -158,6 +160,8 @@ export default function Transactions() {
   }, [saveStatus, getStatus]);
 
   const handleExecute = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+    
     const currentStatus = getStatus(txIndex)?.status || '';
     if (currentStatus.includes('executing')) return;
 
@@ -235,6 +239,7 @@ export default function Transactions() {
               onConfirm={handleConfirm}
               onExecute={handleExecute}
               status={getStatus(tx.txIndex)?.status}
+              isOwner={isOwner}
             />
           ))}
         </div>
