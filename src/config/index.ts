@@ -1,6 +1,6 @@
 import abi from '@/lib/abi.json'
 
-export const IS_STAGING_ENVIROMENT = true;
+export const IS_STAGING_ENVIROMENT = false;
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
 export const CONTRACT_ABI = abi;
 export const DB_NAME = process.env.DB_NAME!;

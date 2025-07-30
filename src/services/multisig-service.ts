@@ -29,7 +29,6 @@ export class MultiSigService {
         if (!window.ethereum) {
             throw new Error("Ethereum provider not found");
         }
-        console.log("initialize")
 
         try {
 
