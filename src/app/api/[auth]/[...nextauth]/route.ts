@@ -25,7 +25,7 @@ export const authOptions: AuthOptions = {
           }
 
           const siwe = new SiweMessage(JSON.parse(credentials.message));
-          const nextAuthUrl = new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000");
+          const nextAuthUrl = new URL(process.env.NEXTAUTH_URL ?? "https://wallet.devtual.com/");
           
           const cookieHeader = req.headers?.cookie
             const cookieNonce = cookieHeader?.match(/siwe-nonce=([^;]+)/)?.[1]
