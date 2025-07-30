@@ -2,7 +2,6 @@ import Link from 'next/link'
 import React from 'react'
 import { Wallet, Shield, FileText, Home } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import LoginButton from './LoginButton';
 import { signOut, useSession } from 'next-auth/react';
 
 const navItems = [

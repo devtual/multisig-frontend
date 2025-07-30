@@ -1,7 +1,6 @@
 import NextAuth, { AuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { SiweMessage } from "siwe";
-import { getCsrfToken } from "next-auth/react";
 
 declare module "next-auth" {
   interface Session {
@@ -18,14 +17,13 @@ const authOptions: AuthOptions = {
         signature: { label: "Signature", type: "text", placeholder: "0x0" },
       },
       async authorize(credentials, req) {
-        console.log("credentials", credentials)
         try {
           if (!credentials?.message || !credentials?.signature || !req.headers) {
             return null;
           }
 
           const siwe = new SiweMessage(JSON.parse(credentials.message));
-          const nextAuthUrl = new URL(process.env.NEXTAUTH_URL ?? "https://wallet.devtual.com/");
+          const nextAuthUrl = new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000");
           
           const cookieHeader = req.headers?.cookie
             const cookieNonce = cookieHeader?.match(/siwe-nonce=([^;]+)/)?.[1]
