@@ -157,7 +157,7 @@ export default function PendingTransactions({
       <div className="p-6 border-b border-gray-700">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-            <Clock className="h-5 w-5 text-yellow-500" />
+            {/* <Clock className="h-5 w-5 text-yellow-500" /> */}
             Pending Transactions
             <span className="text-sm text-gray-400 ml-2">
               ({transactions.length})
@@ -169,14 +169,14 @@ export default function PendingTransactions({
         </div>
       </div>
       
-      <div className="p-6">
+      <div>
         {transactions.length > 0 ? (
-          <div className="space-y-4">
+          <div className="divide-y divide-gray-700">
             {transactions.map((tx) => {
                 const txStatus = getStatus(tx.txIndex)?.status;
 
               return (
-              <div key={tx.txIndex} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+              <div key={tx.txIndex} className="flex items-center justify-between p-6">
                 <div className="flex items-center">
                   <AlertTriangle className="h-6 w-6 text-yellow-500 mr-3" />
                   <div>
