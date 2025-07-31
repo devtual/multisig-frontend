@@ -32,7 +32,13 @@ export async function GET() {
         message: "Transactions fetched successfully",
         transactions,
       },
-      { status: 200 }
+      { 
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*", 
+          "Content-Type": "application/json",
+        },
+      }
     );
   } catch (error) {
     console.error("GET /api/transactions error:", error);
