@@ -9,7 +9,6 @@ import TransactionService from "@/services/transaction-service";
 import { ITransaction, TransactionStatus } from "@/types";
 import Loader from "./Loader";
 import { sleep } from "@/helpers/common";
-import { testEmailFunctions } from "@/services/email";
 
 const transactionService = TransactionService.getInstance();
 
@@ -175,7 +174,35 @@ export default function PendingTransactions({
 
   useEffect(() => {
     fetchTransactions();
-    testEmailFunctions();
+
+    async function handleConfirmation() {
+  try {
+    const response = await fetch('/api/email/confirm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        confirmingOwner: 'john',
+        transactionDetails: {
+          id: 'TX123456',
+          amount: '$1,000.00',
+          description: 'Vendor payment'
+        }
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    
+    alert('Confirmation email sent successfully!');
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    alert('Failed to send email');
+  }
+}
+
+handleConfirmation()
   }, [fetchTransactions]);
 
 
