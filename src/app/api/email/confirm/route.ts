@@ -1,17 +1,18 @@
 import { sendConfirmationEmail } from '@/backend/lib/email';
 import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req:NextApiRequest, res:NextApiResponse) {
+export async function POST(req:NextRequest) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    return NextResponse.json({ message: 'Method not allowed' }, {status: 405})
   }
 
   try {
-    const { owner, txDetail } = req.body;
+    const { owner, txDetail } = await req.json();
     await sendConfirmationEmail(owner, txDetail);
-    res.status(200).json({ success: true });
+    return NextResponse.json({ success: true }, {status: 200})
   } catch (error:any) {
     console.error('API Error:', error);
-    res.status(500).json({ error: error.message });
+    return NextResponse.json({ error: error.message }, {status: 500})
   }
 }
