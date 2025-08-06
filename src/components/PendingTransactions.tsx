@@ -183,11 +183,11 @@ export default function PendingTransactions({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        confirmingOwner: 'john',
-        transactionDetails: {
-          id: 'TX123456',
-          amount: '$1,000.00',
-          description: 'Vendor payment'
+        owner: 'john',
+        txDetail: {
+          txIndex: 'TX123456',
+          value: '$1,000.00',
+          title: 'Vendor payment'
         }
       }),
     });

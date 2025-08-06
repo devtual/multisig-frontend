@@ -1,12 +1,23 @@
 import { twMerge } from "tailwind-merge"
 
+type Variants = "screen" | "fullscreen" | "content"
+
 type LoaderProps = {
   className?: string;
+  variant?: Variants;
 }
 
-export default function Loader({className}: LoaderProps) {
+export default function Loader({className, variant = "screen"}: LoaderProps) {
+  const variants = {
+    screen: "h-screen w-full bg-gray-900",
+    fullscreen: "fixed inset-0 bg-gray-900/70 z-50",
+    content: "absolute inset-0 bg-gray-900/30",
+  };
+
   return (
-    <div className={twMerge("flex justify-center items-center h-screen w-full p-4", className)}>
+    <div className={twMerge("flex justify-center items-center p-4",
+    variants[variant]
+    , className)}>
       <svg
         className="animate-spin h-8 w-8 text-blue-600"
         xmlns="http://www.w3.org/2000/svg"

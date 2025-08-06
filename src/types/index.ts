@@ -3,7 +3,6 @@ export type ITransaction = {
     title: string;
     value: string;
     data: string;
-    executed: boolean;
     numConfirmations: number;
     isConfirmed: boolean;
     txIndex: number;
@@ -15,7 +14,9 @@ export enum TransactionStatus {
     Pending,
     Processing,
     Completed,
-    Failed
+    Failed,
+    Cancelled,
+    Expired
 }
 
 export type ITransactionRecord = {
