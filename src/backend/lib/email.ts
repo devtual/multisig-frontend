@@ -15,6 +15,7 @@ const owners:any = {
   }
 };
 
+
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: parseInt(SMTP_PORT),
