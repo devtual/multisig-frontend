@@ -28,7 +28,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-async function sendConfirmationEmail(confirmingOwner:string, tx:any) {
+export async function sendConfirmationEmail(confirmingOwner:string, tx:any) {
   if (!owners[confirmingOwner]) {
     throw new Error(`Invalid owner: ${confirmingOwner}`);
   }
@@ -70,7 +70,7 @@ async function sendConfirmationEmail(confirmingOwner:string, tx:any) {
   }
 }
 
-async function sendExecutionEmail(executingOwner:string, tx:any) {
+export async function sendExecutionEmail(executingOwner:string, tx:any) {
   if (!owners[executingOwner]) {
     throw new Error(`Invalid owner: ${executingOwner}`);
   }
@@ -112,7 +112,7 @@ async function sendExecutionEmail(executingOwner:string, tx:any) {
 }
 
 // Example usage with error handling
-async function testEmailFunctions() {
+export async function testEmailFunctions() {
   const transactionExample = {
     id: 'TX123456',
     amount: '$1,000.00',
@@ -131,10 +131,3 @@ async function testEmailFunctions() {
     console.error('Email test failed:', error);
   }
 }
-
-testEmailFunctions();
-
-module.exports = {
-  sendConfirmationEmail,
-  sendExecutionEmail
-};

@@ -6,17 +6,10 @@ import { AlertTriangle, ArrowRight, Clock } from "lucide-react";
 import { useTransactionStatus } from "@/hooks/useTransactionStatus";
 import { useWallet } from "@/context/WalletContext";
 import TransactionService from "@/services/transaction-service";
-
-interface Transaction {
-  to: string;
-  value: string;
-  data: string;
-  executed: boolean;
-  numConfirmations: number;
-  isConfirmed: boolean;
-  txIndex: number;
-  status: number
-}
+import { ITransaction, TransactionStatus } from "@/types";
+import Loader from "./Loader";
+import { sleep } from "@/helpers/common";
+import { testEmailFunctions } from "@/services/email";
 
 const transactionService = TransactionService.getInstance();
 
@@ -27,7 +20,7 @@ export default function PendingTransactions({
   onTransactionConfirmed?: (txIndex: number) => void;
   onTransactionExecuted ?: (txIndex: number) => void;
 }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refresh, setRefresh] = useState<number>(0);
   const [threshold, setThreshold] = useState<number>(0);
@@ -72,6 +65,41 @@ export default function PendingTransactions({
     }
   }, [saveStatus, getStatus, onTransactionConfirmed]);
 
+  const handleCancel = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+
+    const currentStatus = getStatus(txIndex)?.status || '';
+    if (currentStatus.includes('cancelling')) return;
+
+    try {
+      saveStatus(txIndex, 'cancelling');
+
+      const txResponse = await contract!.cancelTransaction(txIndex);
+      saveStatus(txIndex, 'cancelling-mined');
+
+      const receipt = await txResponse.wait();
+      
+      if (receipt.status === 1) {
+        saveStatus(txIndex, 'cancelled');
+        setTransactions(prevTxs => 
+        prevTxs.map(tx => 
+          tx.txIndex === txIndex
+            ? { 
+                ...tx, 
+                cancelled: true 
+              }
+            : tx
+        )
+      );
+        // onTransactionConfirmed?.(txIndex);
+      }
+      throw new Error('Transaction failed on-chain');
+    } catch (error) {
+      saveStatus(txIndex, 'confirm-failed');
+      throw error;
+    }
+  }, [saveStatus, getStatus]);
+
   const handleExecute = useCallback(async (txIndex: number) => {
     if(!isOwner) return;
     
@@ -108,12 +136,14 @@ export default function PendingTransactions({
   if (!wallet || !contract || !currentAddress) return;
   
   setLoading(true);
+  await sleep(200)
   try {
     const txArray = await contract.getPendingTransactions(15);
     const txRecords = await transactionService.getAllRecords();
     
-    const processedTransactions = await Promise.all(
-      txArray.map(async (tx: Transaction) => {
+    const txns = await Promise.all(
+      txArray.map(async (tx: ITransaction) => {
+
         const txRecord = txRecords.find(r => r.txIndex === Number(tx.txIndex));
         const title = txRecord?.title || "Untitled";
 
@@ -123,15 +153,15 @@ export default function PendingTransactions({
           value: ethers.formatEther(tx.value),
           title,
           data: tx.data,
-          executed: tx.executed,
           numConfirmations: Number(tx.numConfirmations),
           txIndex: Number(tx.txIndex),
           isConfirmed,
+          status: tx.status
         };
       })
-    );
+    )
     
-    setTransactions(processedTransactions);
+    setTransactions(txns);
     
     const _threshold = await contract.threshold();
     setThreshold(Number(_threshold));
@@ -145,11 +175,12 @@ export default function PendingTransactions({
 
   useEffect(() => {
     fetchTransactions();
+    testEmailFunctions();
   }, [fetchTransactions]);
 
 
   if (loading && transactions.length === 0) {
-    return <div className="p-6 text-gray-400">Loading transactions...</div>;
+    return <Loader variant="fullscreen" />;
   }
 
   return (
@@ -189,31 +220,36 @@ export default function PendingTransactions({
                   </div>
                 </div>
                 {isOwner && <div className="flex flex-col items-end gap-2">
-                    {(tx.isConfirmed && tx.numConfirmations !== threshold) && <p className="text-yellow-500">Pending</p>}
-          
-              
-                  {!tx.isConfirmed && (
+                  {(tx.isConfirmed && tx.numConfirmations !== threshold) && <p className="text-yellow-500">Pending</p>}
+                  {(!tx.isConfirmed && tx.status !== TransactionStatus.Cancelled) && (
+                    <div className="flex gap-3">
+
                     <button
                       onClick={() => handleConfirm(tx.txIndex)}
                       disabled={txStatus?.includes('confirming') || loading}
-                      className="text-sm cursor-pointer text-primary-400 hover:text-primary-400/80 py-1"
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 text-white hover:bg-primary-500/80"
                     >
-                            {txStatus?.includes('confirming') ? "Confirming..." : "Sign Transaction"}
-
-
+                      {txStatus?.includes('confirming') ? "Confirming..." : "Confirm"}
                     </button>
+                    <button
+                      onClick={() => handleCancel(tx.txIndex)}
+                      disabled={txStatus?.includes('cancelling') || loading}
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-red-500 text-white hover:bg-red-500/80"
+                    >
+                      {txStatus?.includes('cancelling') ? "Cancelling..." : "Cancel"}
+                    </button>
+                    </div>
                   )}
                   {tx.numConfirmations >= threshold && (
                     <button
                       onClick={() => handleExecute(tx.txIndex)}
                             disabled={txStatus?.includes('executing') || loading}
 
-                      className="text-sm cursor-pointer text-green-400 hover:text-green-300 py-1"
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-green-400 hover:bg-green-400/80"
                     >
-                            {txStatus?.includes('executing') ? "Executing..." : "Execute"}
-
+                      {txStatus?.includes('executing') ? "Executing..." : "Execute"}
                     </button>
-                  )}
+                )}
                 </div>}
               </div>
             )})}
