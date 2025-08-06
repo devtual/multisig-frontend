@@ -1,6 +1,6 @@
 import { TransactionStatusIcon } from './TransactionStatusIcon';
 import { TransactionStatusBadge } from './TransactionStatusBadge';
-import { ITransaction } from '@/types';
+import { ITransaction, TransactionStatus } from '@/types';
 import { dateFormat } from '@/helpers/common';
 
 
@@ -9,17 +9,19 @@ type TransactionCardProps = {
   threshold: number;
   onConfirm?: (txIndex: number) => void;
   onExecute?: (txIndex: number) => void;
+  onCancel?: (txIndex: number) => void;
   status?: string;
   isOwner: boolean;
 };
 
-const tnxStatus = ["pending", "processing", "completed", "failed"];
+const tnxStatus = ["pending", "processing", "completed", "failed", "cancelled", "expired"];
 
 export const TransactionCard = ({
   transaction,
   threshold,
   onConfirm,
   onExecute,
+  onCancel,
   status,
   isOwner
 }: TransactionCardProps) => {
@@ -52,28 +54,37 @@ export const TransactionCard = ({
 
         <div className="text-right">
           <p className="text-sm text-gray-400">{dateFormat(transaction.timestamp)}</p>
-          {!transaction.executed &&
+          {(transaction.status !== TransactionStatus.Completed && transaction.status !== TransactionStatus.Cancelled) &&
             <>
               <div className="flex items-center justify-end mt-1">
                 <span className="text-xs text-yellow-400">
                   Signatures: {transaction.numConfirmations}/{threshold}
                 </span>
               </div>
-              {isOwner && <div className="flex flex-col items-end gap-2">
+              {isOwner && <div className="flex items-end gap-3 mt-3">
                 {!transaction.isConfirmed && (
+                  <>
                   <button
                     onClick={() => onConfirm?.(transaction.txIndex)}
                     disabled={status?.includes("confirming")}
-                    className='text-sm cursor-pointer text-primary-400 hover:text-primary-400/80 py-1'
+                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 text-white hover:bg-primary-500/80'
                   >
-                    {status?.includes("confirming") ? "Confirming..." : "Sign Transaction"}
+                    {status?.includes("confirming") ? "Confirming..." : "Confirm"}
                   </button>
+                  <button
+                      onClick={() => onCancel?.(transaction.txIndex)}
+                      disabled={status?.includes('cancelling')}
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-red-500 text-white hover:bg-red-500/80"
+                    >
+                      {status?.includes('cancelling') ? "Cancelling..." : "Cancel"}
+                    </button>
+                  </>
                 )}
                 {transaction.numConfirmations >= threshold && (
                   <button
                     onClick={() => onExecute?.(transaction.txIndex)}
                     disabled={status?.includes("executing")}
-                    className='text-sm cursor-pointer text-green-400 hover:text-green-300 py-1'
+                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-green-400 text-white hover:bg-green-400/80'
                   >
                     {status?.includes("executing") ? "Executing..." : "Execute"}
                   </button>

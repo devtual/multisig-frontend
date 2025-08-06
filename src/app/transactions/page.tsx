@@ -9,6 +9,8 @@ import TransactionsStats from '@/components/TransactionsStats';
 import { useTransactionStatus } from '@/hooks/useTransactionStatus';
 import { useWallet } from '@/context/WalletContext';
 import TransactionService from '@/services/transaction-service';
+import Loader from '@/components/Loader';
+import { sleep } from '@/helpers/common';
 
 const tnxStatus = ["pending", "processing", "completed", "failed"];
 const transactionService = TransactionService.getInstance();
@@ -19,6 +21,7 @@ export default function Transactions() {
   const [transactionsCache, setTransactionsCache] = useState<Map<number, ITransaction[]>>(new Map());
   const [tnxCount, setTnxCount] = useState(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [threshold, setThreshold] = useState<number>(0);
   const { saveStatus, getStatus } = useTransactionStatus();
   const [refreshCount, setRefreshCount] = useState(0);
@@ -28,19 +31,18 @@ export default function Transactions() {
   const [hasMore, setHasMore] = useState(true);
   const pageSize = 10;
 
-
   const { wallet, contract, provider, currentAddress, isOwner } = useWallet();
 
   useEffect(() => {
     const fetchData = async () => {
       if (!contract || !wallet || !currentAddress) return;
-
-      if (transactionsCache.has(currentPage)) {
-        setTransactions(transactionsCache.get(currentPage)!);
-        return;
-      }
+      // if (transactionsCache.has(currentPage)) {
+      //   setTransactions(transactionsCache.get(currentPage)!);
+      //   return;
+      // }
 
       setLoading(true);
+      await sleep(200)
       const offset = (currentPage - 1) * pageSize;
 
       try {
@@ -64,7 +66,7 @@ export default function Transactions() {
         const confirmations = await Promise.all(confirmationPromises);
 
         const txArray: ITransaction[] = txBatch.map((tx: any, i:number) => {
-          const txRecord = txRecords.find(r => r.txIndex === Number(tx.txIndex));
+        const txRecord = txRecords.find(r => r.txIndex === Number(tx.txIndex));
 
           const title = txRecord?.title || "Untitled";
           return {
@@ -72,23 +74,21 @@ export default function Transactions() {
             to: tx.to,
             value: ethers.formatEther(tx.value),
             data: tx.data,
-            executed: tx.executed,
-            failed: tx.failed,
             numConfirmations: Number(tx.numConfirmations),
-            isConfirmed: confirmations[i], // ✅ index match
+            isConfirmed: confirmations[i],
             title,
-            status: tx.status,
+            status: Number(tx.status),
             timestamp: Number(tx.timestamp),
           };
         });
 
         txArray.sort((a, b) => b.timestamp - a.timestamp);
 
-        setTransactionsCache(prev => {
-          const newCache = new Map(prev);
-          newCache.set(currentPage, txArray);
-          return newCache;
-        });
+        // setTransactionsCache(prev => {
+        //   const newCache = new Map(prev);
+        //   newCache.set(currentPage, txArray);
+        //   return newCache;
+        // });
 
         setTransactions(txArray);
         setHasMore(offset + limit < count);
@@ -99,6 +99,7 @@ export default function Transactions() {
         console.error("Pagination error:", err);
       } finally {
         setLoading(false);
+        setInitialLoading(false);
       }
     };
 
@@ -187,7 +188,6 @@ export default function Transactions() {
               ? {
                 ...tx,
                 timestamp,
-                executed: true,
                 status: TransactionStatus.Completed
               }
               : tx
@@ -203,6 +203,41 @@ export default function Transactions() {
     }
   }, [contract, saveStatus, getStatus]);
 
+  const handleCancel = useCallback(async (txIndex: number) => {
+    if(!isOwner) return;
+
+    const currentStatus = getStatus(txIndex)?.status || '';
+    if (currentStatus.includes('cancelling')) return;
+
+    try {
+      saveStatus(txIndex, 'cancelling');
+
+      const txResponse = await contract!.cancelTransaction(txIndex);
+      saveStatus(txIndex, 'cancelling-mined');
+
+      const receipt = await txResponse.wait();
+      
+      if (receipt.status === 1) {
+        saveStatus(txIndex, 'cancelled');
+        setTransactions(prevTxs => 
+        prevTxs.map(tx => 
+          tx.txIndex === txIndex
+            ? { 
+                ...tx, 
+                cancelled: true 
+              }
+            : tx
+        )
+      );
+        // onTransactionConfirmed?.(txIndex);
+      }
+      throw new Error('Transaction failed on-chain');
+    } catch (error) {
+      saveStatus(txIndex, 'confirm-failed');
+      throw error;
+    }
+  }, [saveStatus, getStatus]);
+
   const filteredTnx = transactions.filter(tx => {
     if (filter === 'all') return true;
     return tnxStatus[tx.status] === filter;
@@ -211,10 +246,13 @@ export default function Transactions() {
   const totalPages = Math.ceil(tnxCount / pageSize);
 
 
+  if (initialLoading) {
+    return <Loader variant='fullscreen' />;
+  }
+
 
   return (
     <div className="space-y-6">
-
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Transactions</h1>
@@ -225,11 +263,11 @@ export default function Transactions() {
       </div>
       <TransactionsStats refreshKey={refreshCount} />
       
-      <div className="bg-gray-800 rounded-lg border border-gray-700">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 relative">
+          {loading && <Loader variant="content" />}
         <div className="p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Transaction History</h2>
         </div>
-
         <div className="divide-y divide-gray-700">
           {filteredTnx.map((tx) => (
             <TransactionCard
@@ -238,6 +276,7 @@ export default function Transactions() {
               threshold={threshold}
               onConfirm={handleConfirm}
               onExecute={handleExecute}
+              onCancel={handleCancel}
               status={getStatus(tx.txIndex)?.status}
               isOwner={isOwner}
             />

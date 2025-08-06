@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./Car
 import Input from "./Input";
 import Label from "./Label";
 import { useWallet } from "@/context/WalletContext";
-import { sleep } from "@/helpers/common";
 import TransactionService from "@/services/transaction-service";
 
 type Props = {
@@ -60,7 +59,6 @@ const SubmitTransactionForm: React.FC<Props> = () => {
       }
 
       const parsedEvent: any = contract.interface.parseLog(event);
-      console.log(typeof parsedEvent.args.txIndex);
 
       const txIndex = Number(parsedEvent.args.txIndex);
 
@@ -68,7 +66,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
         throw new Error("Could not retrieve transaction index from event");
       }
 
-      await saveRecord(txIndex, title, txHash);
+      await transactionService.saveRecord(txHash, txIndex, title);
 
       setMessage({ type: "success", text: "Transaction submitted successfully!" });
       // setFormData({ title: "", amount: "", recipient: "" });
@@ -78,34 +76,6 @@ const SubmitTransactionForm: React.FC<Props> = () => {
       setLoading(false);
     }
   };
-
-  const saveRecord = async (txIndex: number, title: string, txHash: string, attemptsLeft = 5) => {
-    const saved = await transactionService.saveRecord({ txIndex, title, txHash, submittedBy: currentAddress })
-    if (!saved) {
-      console.warn(`❗️ Failed to save record (attempts left: ${attemptsLeft - 1})`);
-
-      if (attemptsLeft > 1) {
-        await sleep(1000);
-        return saveRecord(txIndex, title, txHash, attemptsLeft - 1);
-      } else {
-        // const fallbackKey = "failed-transactions";
-
-        // const data = {
-        //   txIndex,
-        //   title,
-        //   txHash,
-        //   submittedBy: currentAddress,
-        //   timestamp: new Date().toISOString(),
-        // };
-
-        // const existing = localStorage.getItem(fallbackKey);
-        // const txArray = existing ? JSON.parse(existing) : [];
-
-        // txArray.push(data);
-        // localStorage.setItem(fallbackKey, JSON.stringify(txArray));
-      }
-    }
-  }
 
   if(!isOwner){
     return <Card>

@@ -44,9 +44,8 @@ export default function Header({ isDeployer }: { isDeployer: boolean }) {
               )
             })}
             <button
-              className="bg-red-500 text-sm text-white px-4 py-2 rounded"
-              onClick={() => signOut()}
-            >
+              className="bg-red-500 text-sm text-white px-4 py-2 rounded cursor-pointer"
+              onClick={() => signOut()}>
               Sign Out
             </button>
           </div>}

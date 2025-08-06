@@ -9,8 +9,10 @@ export const TransactionStatusBadge = ({ status }: TransactionStatusBadgeProps) 
         return 'text-yellow-400 bg-yellow-400/10';
       case 'completed':
         return 'text-green-400 bg-green-400/10';
-      case 'failed':
+      case 'cancelled':
         return 'text-red-400 bg-red-400/10';
+      case 'failed':
+        return 'text-red-500 bg-red-500/10';
       default:
         return 'text-gray-400 bg-gray-400/10';
     }
