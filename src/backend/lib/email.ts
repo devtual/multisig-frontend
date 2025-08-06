@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
   secure: SMTP_SECURE === 'true',
   auth: {
     user: SMTP_USER,
-    pass: "WRU3a@-fw%dn"
+    pass: SMTP_PASSWORD
   },
   tls: {
     rejectUnauthorized: process.env.NODE_ENV !== 'production'
