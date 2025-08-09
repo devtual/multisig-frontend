@@ -110,6 +110,34 @@ export async function sendExecutionEmail(executingOwner:string, tx:any) {
   }
 }
 
+export async function addOwnerRequestEmail(name: string, email: string) {
+  const mailOptions = {
+    from: email, 
+    to: process.env.DEPLOYER_EMAIL,
+    subject: `Add Owner Request from ${name}`,
+    text: `Hello,\n\n` +
+          `${name} has submitted a request to be added as an owner.\n\n` +
+          `Please review and approve the request.\n\n` +
+          `Best regards,\n${APP_NAME}`,
+    html: `<p>Hello,</p>
+           <p><strong>${name}</strong> has submitted a request to be added as an owner.</p>
+           <p>Please review and approve the request.</p>
+           <p>Best regards,<br>${APP_NAME}</p>`
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    if (process.env.EMAIL_LOGGING === 'true') {
+      console.log('Add owner request email sent:', info.messageId);
+    }
+    return true;
+  } catch (error) {
+    console.error('Error sending add owner request email:', error);
+    throw error;
+  }
+}
+
+
 // Example usage with error handling
 export async function testEmailFunctions() {
   const transactionExample = {

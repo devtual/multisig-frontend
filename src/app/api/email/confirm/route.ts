@@ -1,5 +1,4 @@
 import { sendConfirmationEmail } from '@/backend/lib/email';
-import { NextApiRequest, NextApiResponse } from 'next';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req:NextRequest) {

@@ -146,7 +146,7 @@ export class ApiCall {
     public responseMaker(response:any, success: boolean) : IApiResponse {
         return {
             status: success,
-            message: success ? response.message : 'success',
+            message: response.message,
             result: success ? response.data : null,
         }
     }

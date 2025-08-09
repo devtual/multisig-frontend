@@ -48,6 +48,8 @@ export default function Startup({ children }: { children: React.ReactNode }) {
       const success = await MultiSigService.initialize();
 
       if (!success) return;
+
+      
         
       const wallet = MultiSigService.getInstance();
       const [contract, provider, isDeployer] = await Promise.all([
