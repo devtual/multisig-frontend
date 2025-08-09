@@ -16,7 +16,7 @@ export default function WalletOption({ hasWallet, onClick }: Props) {
       <span className="font-medium">MetaMask</span>
       <div className="flex items-center space-x-2">
         {hasWallet && (
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Installed</span>
+          <span className="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded">Installed</span>
         )}
         <Image src="/metamask.svg" alt="MetaMask" width={20} height={20} />
       </div>

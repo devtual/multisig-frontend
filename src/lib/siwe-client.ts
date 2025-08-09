@@ -1,6 +1,7 @@
 import { SiweMessage } from "siwe"
 import { signIn } from "next-auth/react"
 import { MultiSigService } from "@/services/multisig-service";
+import { API_ENDPOINT } from "@/config";
 
 export async function logInWithEthereum() {
   const wallet = await MultiSigService.getInstance();
@@ -9,7 +10,7 @@ export async function logInWithEthereum() {
   const address = await wallet.getCurrentAccount();
   const chainId = (await provider.getNetwork()).chainId;
 
-  const nonceRes = await fetch("/api/siwe/nonce")
+  const nonceRes = await fetch(API_ENDPOINT + "api/siwe/nonce")
   const { nonce } = await nonceRes.json();
 
   try {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
-import { Wallet, Shield, FileText, Home } from 'lucide-react';
+import { Wallet, FileText, Home } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import logo from "../../public/logo.svg"
@@ -48,7 +48,7 @@ export default function Header({ isDeployer }: { isDeployer: boolean }) {
             <button
               className="bg-red-500 text-sm text-white px-4 py-2 rounded cursor-pointer"
               onClick={() => signOut()}>
-              Sign Out
+              Log Out
             </button>
           </div>}
         </div>

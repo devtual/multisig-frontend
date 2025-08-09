@@ -12,6 +12,7 @@ import TransactionService from '@/services/transaction-service';
 import Loader from '@/components/Loader';
 import { sleep } from '@/helpers/common';
 import EmailService from '@/services/email-service';
+import NewTransactionButton from '@/components/NewTransactionButton';
 
 const tnxStatus = ["pending", "processing", "completed", "failed"];
 const transactionService = TransactionService.getInstance();
@@ -263,7 +264,8 @@ export default function Transactions() {
           <h1 className="text-3xl font-bold text-white">Transactions</h1>
           <p className="text-gray-400 mt-2">View and manage all wallet transactions</p>
         </div>
-
+        
+        {isOwner && <NewTransactionButton />}
         {/* <TransactionsFilter filter={filter} setFilter={setFilter} /> */}
       </div>
       <TransactionsStats refreshKey={refreshCount} />
