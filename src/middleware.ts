@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server"
 const authRoutes = ["/login"];
 const owners = ["0x803Dffe2fB11D6026ff160F67F0B1c5C5DB18d68"];
 
-const protectedRoutes = ["/", "/dashboard", "/send-transaction", "/transactions"]
+const protectedRoutes = ["/", "/dashboard", "/send-transaction", "/transactions", "/add-owner"]
 const ownerRoutes = ["/fund", "/transactions/new"]
 
 export async function middleware(req: NextRequest) {

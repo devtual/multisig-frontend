@@ -3,7 +3,6 @@ import { useState } from "react";
 import ownerService from "@/services/owner-service";
 import { addOwnerSchema } from "@/schemas";
 import Input from "./Input";
-import { Send } from "lucide-react";
 
 export default function AddOwnerForm() {
     const [formData, setFormData] = useState({ name: "", email: "", address: "" });
@@ -44,7 +43,7 @@ export default function AddOwnerForm() {
             setMessage(res.message!);
             setIsError(true)
         } else {
-            setMessage("Request sent successfully! Status: pending");
+            setMessage("Request sent successfully!");
             setFormData({ name: "", email: "", address: "" });
         }
 

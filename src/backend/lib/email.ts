@@ -36,7 +36,7 @@ export async function sendConfirmationEmail(confirmingOwner:string, tx:any) {
   const otherOwner = confirmingOwner === 'john' ? owners.jack : owners.john;
   
   const mailOptions = {
-    from: `"${APP_NAME}" <${process.env.APP_EMAIL_FROM}>`,
+    from: `"${APP_NAME}" <${APP_EMAIL_FROM}>`,
     to: otherOwner.email,
     subject: `Transaction Confirmed by ${owners[confirmingOwner].name}`,
     text: `Hello ${otherOwner.name},\n\n` +
@@ -112,30 +112,28 @@ export async function sendExecutionEmail(executingOwner:string, tx:any) {
 
 export async function addOwnerRequestEmail(name: string, email: string) {
   const mailOptions = {
-    from: email, 
+    from: `"${APP_NAME}" <${APP_EMAIL_FROM}>`,
     to: process.env.DEPLOYER_EMAIL,
     subject: `Add Owner Request from ${name}`,
     text: `Hello,\n\n` +
-          `${name} has submitted a request to be added as an owner.\n\n` +
+          `${name} (${email}) has submitted a request to be added as an owner.\n\n` +
           `Please review and approve the request.\n\n` +
           `Best regards,\n${APP_NAME}`,
     html: `<p>Hello,</p>
-           <p><strong>${name}</strong> has submitted a request to be added as an owner.</p>
+           <p><strong>${name}</strong> (<a href="mailto:${email}">${email}</a>) has submitted a request to be added as an owner.</p>
            <p>Please review and approve the request.</p>
            <p>Best regards,<br>${APP_NAME}</p>`
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    if (process.env.EMAIL_LOGGING === 'true') {
-      console.log('Add owner request email sent:', info.messageId);
-    }
+    await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
     console.error('Error sending add owner request email:', error);
     throw error;
   }
 }
+
 
 
 // Example usage with error handling

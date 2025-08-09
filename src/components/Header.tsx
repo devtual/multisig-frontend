@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
-import { Wallet, FileText, Home } from 'lucide-react';
+import { Wallet, FileText, Home, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import logo from "../../public/logo.svg"
@@ -10,6 +10,7 @@ const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
   { path: '/transactions', icon: FileText, label: 'Transactions' },
   { path: '/fund', icon: Wallet, label: 'Fund' },
+  { path: '/add-owner', icon: User, label: 'Submit Request'}
   // { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
