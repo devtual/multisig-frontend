@@ -8,8 +8,7 @@ export const DB_NAME = process.env.DB_NAME!;
 export const MONGODB_URI = process.env.MONGODB_URI!;
 export const LOCALDB_URI = process.env.LOCALDB_URI!;
 
-export const API_ENDPOINT = process.env.NEXT_PUBLIC_API!;
-// export const API_ENDPOINT = process.env.NEXT_PUBLIC_STAGE_API!;
+export const API_ENDPOINT = IS_STAGING_ENVIROMENT ? process.env.NEXT_PUBLIC_STAGE_API! : process.env.NEXT_PUBLIC_API!;
 export const SMTP_HOST = process.env.SMTP_HOST!;
 export const SMTP_PORT = process.env.SMTP_PORT!;
 export const SMTP_SECURE = process.env.SMTP_SECURE!;

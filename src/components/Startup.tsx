@@ -46,10 +46,8 @@ export default function Startup({ children }: { children: React.ReactNode }) {
       await WalletProvider.switchToSepolia();
 
       const success = await MultiSigService.initialize();
-      console.log("Success", success)
-      if (!success) return;
 
-      
+      if (!success) return;
         
       const wallet = MultiSigService.getInstance();
       const [contract, provider, isDeployer] = await Promise.all([
@@ -78,7 +76,6 @@ export default function Startup({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Wallet initialization failed:", error);
     } finally {
-      console.log("Finally call")
       setLoading(false);
     }
   };
