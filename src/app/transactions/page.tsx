@@ -11,6 +11,7 @@ import { useWallet } from '@/context/WalletContext';
 import TransactionService from '@/services/transaction-service';
 import Loader from '@/components/Loader';
 import { sleep } from '@/helpers/common';
+import EmailService from '@/services/email-service';
 
 const tnxStatus = ["pending", "processing", "completed", "failed"];
 const transactionService = TransactionService.getInstance();
@@ -193,6 +194,10 @@ export default function Transactions() {
               : tx
           )
         )
+
+        const tx = transactions.find(tx => tx.txIndex === txIndex);
+        if(tx)
+        EmailService.execute("john", {txIndex, value: tx.value, title: tx.title})
         setRefreshCount((prev) => prev + 1);
         return;
       }

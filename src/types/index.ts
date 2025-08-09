@@ -26,3 +26,10 @@ export type ITransactionRecord = {
   submittedBy: string;
   timestamp?: Date;
 }
+
+export type IApiResponse = {
+    status?: boolean;
+    result?: any;
+    message?: string;
+    code?: number;
+}

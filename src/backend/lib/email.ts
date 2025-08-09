@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-
 const owners:any = {
   john: {
     name: process.env.OWNER_JOHN_NAME,
@@ -15,7 +14,6 @@ const owners:any = {
     email: process.env.OWNER_JACK_EMAIL
   }
 };
-
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
@@ -38,9 +36,8 @@ export async function sendConfirmationEmail(confirmingOwner:string, tx:any) {
   const otherOwner = confirmingOwner === 'john' ? owners.jack : owners.john;
   
   const mailOptions = {
-    from: `"${process.env.APP_NAME}" <${process.env.APP_EMAIL_FROM}>`,
+    from: `"${APP_NAME}" <${process.env.APP_EMAIL_FROM}>`,
     to: otherOwner.email,
-    replyTo: process.env.APP_EMAIL_REPLY_TO,
     subject: `Transaction Confirmed by ${owners[confirmingOwner].name}`,
     text: `Hello ${otherOwner.name},\n\n` +
           `${owners[confirmingOwner].name} has confirmed the following transaction:\n\n` +

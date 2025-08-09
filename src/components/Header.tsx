@@ -3,6 +3,8 @@ import React from 'react'
 import { Wallet, Shield, FileText, Home } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import logo from "../../public/logo.svg"
+import Image from 'next/image';
 
 const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
@@ -20,8 +22,8 @@ export default function Header({ isDeployer }: { isDeployer: boolean }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Shield className="h-8 w-8 text-primary-500 mr-3" />
-            <h1 className="text-xl font-bold">MultiWallet</h1>
+            <Image src={logo} width="30" height="30" alt='logo' />
+            <h1 className="text-xl font-bold">Tresis</h1>
           </div>
 
           {session?.address && <div className="flex space-x-8 items-center">

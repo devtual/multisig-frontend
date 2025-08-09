@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Multi Signature Wallet',
-    template: '%s | Multi Signature Wallet',
+    default: 'Tresis Wallet - Secure Multi-Signature Crypto Wallet',
+    template: '%s | Secure Multi-Signature Crypto Wallet',
   },
 };
 

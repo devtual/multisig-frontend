@@ -9,6 +9,7 @@ import TransactionService from "@/services/transaction-service";
 import { ITransaction, TransactionStatus } from "@/types";
 import Loader from "./Loader";
 import { sleep } from "@/helpers/common";
+import emailService from "@/services/email-service";
 
 const transactionService = TransactionService.getInstance();
 
@@ -53,6 +54,12 @@ export default function PendingTransactions({
             : tx
         )
       );
+      const tx = transactions.find(tx => tx.txIndex === txIndex);
+      console.log("tx", tx)
+      if(tx){
+        emailService.confirm("john", {txIndex, value: tx.value, title: tx.title})
+      }
+
         onTransactionConfirmed?.(txIndex);
 
         return;
@@ -202,7 +209,7 @@ export default function PendingTransactions({
   }
 }
 
-handleConfirmation()
+// handleConfirmation()
   }, [fetchTransactions]);
 
 
