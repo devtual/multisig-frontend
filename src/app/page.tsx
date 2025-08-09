@@ -27,7 +27,6 @@ export default function WalletDashboard() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 mt-2">Manage your multi-signature wallets and transactions</p>
         </div>
         {isOwner && <Link
           href="/send-transaction"

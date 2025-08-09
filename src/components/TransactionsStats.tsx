@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, Clock, Send, Wallet } from "lucide-react";
 import { useWallet } from "@/context/WalletContext";
+import { formatBalance } from "@/helpers/common";
 
 
 export default function TransactionsStats({ refreshKey }: { refreshKey: number }) {
@@ -26,15 +27,13 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
           failedTxs
         } = await wallet!.getTransactionStats();
 
-        const formattedStats = {
+        setStats({
           contractBalance,
           totalValue,
           pendingTxs,
           executedTxs,
           failedTxs
-        };
-
-        setStats(formattedStats)
+        })
     };
 
     init();
@@ -49,7 +48,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
             <Wallet className="h-8 w-8 text-primary-400" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Contract Balance</p>
-              <p className="text-2xl font-bold text-white">{stats.contractBalance} ETH</p>
+              <p className="text-2xl font-bold text-white">{formatBalance(stats.contractBalance)} ETH</p>
             </div>
           </div>
         </div>
@@ -59,7 +58,7 @@ export default function TransactionsStats({ refreshKey }: { refreshKey: number }
             <Send className="h-8 w-8 text-green-500" />
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Total Balance</p>
-              <p className="text-2xl font-bold text-white">{stats.totalValue} ETH</p>
+              <p className="text-2xl font-bold text-white">{formatBalance(stats.totalValue)} ETH</p>
             </div>
           </div>
         </div>

@@ -13,3 +13,11 @@ export function dateFormat(unixTimestamp: number): string {
 export function sleep(ms:number){
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+export function formatBalance(bal: string | number) {
+  const num = Number(bal);
+  if (isNaN(num)) return "0";
+
+  const [intPart] = bal.toString().split(".");
+  return Number(bal).toFixed(intPart.length > 2 ? 4 : 6);
+}

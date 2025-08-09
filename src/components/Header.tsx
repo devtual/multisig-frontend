@@ -21,7 +21,7 @@ export default function Header({ isDeployer }: { isDeployer: boolean }) {
     <nav className="bg-gray-800 border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex gap-2 items-center">
             <Image src={logo} width="30" height="30" alt='logo' />
             <h1 className="text-xl font-bold">Tresis</h1>
           </div>
