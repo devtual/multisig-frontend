@@ -119,18 +119,18 @@ export async function sendOwnerReqEmail(name: string, email: string) {
       <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px;">
         <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
           
-          <div style="background-color: #4CAF50; color: white; padding: 16px; text-align: center;">
+          <div style="background-color: #9234ea; color: white; padding: 16px;">
             <h1 style="margin: 0; font-size: 20px;">${APP_NAME} - Owner Request</h1>
           </div>
           
           <div style="padding: 24px; font-size: 15px; color: #333;">
             <p>Hi,</p>
-            <p><strong>${name}</strong> (<a href="mailto:${email}" style="color: #4CAF50; text-decoration: none;">${email}</a>) has submitted a request to be added as an owner.</p>
+            <p><strong>${name}</strong> (<a href="mailto:${email}" style="color: #9234ea; text-decoration: none;">${email}</a>) has submitted a request to be added as an owner.</p>
             <p>Please review and approve the request.</p>
             
             <div style="margin-top: 24px; text-align: center;">
               <a href="${process.env.APP_REVIEW_URL}" 
-                 style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; font-size: 15px; border-radius: 5px; text-decoration: none;">
+                 style="display: inline-block; background-color: #9234ea; color: white; padding: 12px 24px; font-size: 15px; border-radius: 5px; text-decoration: none;">
                 Review Request
               </a>
             </div>
