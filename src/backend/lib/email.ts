@@ -110,19 +110,39 @@ export async function sendExecutionEmail(executingOwner:string, tx:any) {
   }
 }
 
-export async function addOwnerRequestEmail(name: string, email: string) {
+export async function sendAddOwnerReqEmail(name: string, email: string) {
   const mailOptions = {
     from: `"${APP_NAME}" <${APP_EMAIL_FROM}>`,
     to: process.env.DEPLOYER_EMAIL,
     subject: `Add Owner Request from ${name}`,
-    text: `Hello,\n\n` +
-          `${name} (${email}) has submitted a request to be added as an owner.\n\n` +
-          `Please review and approve the request.\n\n` +
-          `Best regards,\n${APP_NAME}`,
-    html: `<p>Hello,</p>
-           <p><strong>${name}</strong> (<a href="mailto:${email}">${email}</a>) has submitted a request to be added as an owner.</p>
-           <p>Please review and approve the request.</p>
-           <p>Best regards,<br>${APP_NAME}</p>`
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 30px;">
+        <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          
+          <div style="background-color: #4CAF50; color: white; padding: 16px; text-align: center;">
+            <h1 style="margin: 0; font-size: 20px;">${APP_NAME} - Owner Request</h1>
+          </div>
+          
+          <div style="padding: 24px; font-size: 15px; color: #333;">
+            <p>Hi,</p>
+            <p><strong>${name}</strong> (<a href="mailto:${email}" style="color: #4CAF50; text-decoration: none;">${email}</a>) has submitted a request to be added as an owner.</p>
+            <p>Please review and approve the request.</p>
+            
+            <div style="margin-top: 24px; text-align: center;">
+              <a href="${process.env.APP_REVIEW_URL}" 
+                 style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; font-size: 15px; border-radius: 5px; text-decoration: none;">
+                Review Request
+              </a>
+            </div>
+          </div>
+          
+          <div style="background-color: #f4f6f8; padding: 16px; text-align: center; font-size: 12px; color: #999;">
+            <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.</p>
+          </div>
+          
+        </div>
+      </div>
+    `
   };
 
   try {
@@ -133,8 +153,6 @@ export async function addOwnerRequestEmail(name: string, email: string) {
     throw error;
   }
 }
-
-
 
 // Example usage with error handling
 export async function testEmailFunctions() {
