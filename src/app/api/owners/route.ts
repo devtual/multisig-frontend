@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Owner from "@/backend/models/Owner";
 import { connectToDatabase } from "@/backend/lib/db";
-import { addOwnerRequestEmail, sendAddOwnerReqEmail } from "@/backend/lib/email";
+import { sendOwnerReqEmail } from "@/backend/lib/email";
 
 export async function POST(req: NextRequest) {
     try {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
             status: "pending",
         });
 
-        await sendAddOwnerReqEmail(name, email);
+        await sendOwnerReqEmail(name, email);
 
         return NextResponse.json(
             { message: "Owner added", owner: newOwner },

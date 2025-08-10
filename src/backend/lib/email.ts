@@ -110,7 +110,7 @@ export async function sendExecutionEmail(executingOwner:string, tx:any) {
   }
 }
 
-export async function sendAddOwnerReqEmail(name: string, email: string) {
+export async function sendOwnerReqEmail(name: string, email: string) {
   const mailOptions = {
     from: `"${APP_NAME}" <${APP_EMAIL_FROM}>`,
     to: process.env.DEPLOYER_EMAIL,
