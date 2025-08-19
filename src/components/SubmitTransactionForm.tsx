@@ -64,6 +64,23 @@ const SubmitTransactionForm: React.FC<Props> = () => {
 
     if (!wallet || !contract || !isOwner) return;
 
+    setIsSubmitted(true)    
+    setErrors({})
+
+    const result = newTransSchema.safeParse(formData);
+
+    if (!result.success) {
+        const fieldErrors: { [key: string]: string } = {};
+
+        result.error.issues.forEach((err: any) => {
+            if (err.path.length > 0) fieldErrors[err.path[0]] = err.message;
+        });
+
+        setErrors(fieldErrors);
+        setIsSubmitted(false)
+        return;
+    }
+
     if (Number(usdtValue) < 10) {
       Notification.show("Amount must be greater than 10 USDT", NotificationType.Error);
       return;
@@ -88,24 +105,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
     return;
   }
 
-
-
-    setIsSubmitted(true)    
-    setErrors({})
-
-    const result = newTransSchema.safeParse(formData);
-
-    if (!result.success) {
-        const fieldErrors: { [key: string]: string } = {};
-
-        result.error.issues.forEach((err: any) => {
-            if (err.path.length > 0) fieldErrors[err.path[0]] = err.message;
-        });
-
-        setErrors(fieldErrors);
-        setIsSubmitted(false)
-        return;
-    }
+    
 
 
     try {
@@ -186,6 +186,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
                 value={formData.title}
                 onChange={handleChange}
               />
+              {errors.title && <p className="text-red-600 mt-1 text-sm">{errors.title}</p>}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -201,6 +202,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
                 value={formData.amount}
                 onChange={handleChange}
               />
+              {errors.amount && <p className="text-red-600 mt-1 text-sm">{errors.amount}</p>}
             </div>
           </div>
 
@@ -213,6 +215,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
               value={formData.recipient}
               onChange={handleChange}
             />
+            {errors.recipient && <p className="text-red-600 mt-1 text-sm">{errors.recipient}</p>}
           </div>
 
           {message && (

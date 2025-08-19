@@ -61,7 +61,7 @@ export default function AddOwnerForm() {
                             value={formData.name}
                             onChange={handleChange}
                         />
-                        {errors.name && <p className="text-red-600 mt-1">{errors.name}</p>}
+                        {errors.name && <p className="text-red-600 mt-1 text-sm">{errors.name}</p>}
                     </div>
                     <div>
                         <Input
@@ -71,7 +71,7 @@ export default function AddOwnerForm() {
                             value={formData.email}
                             onChange={handleChange}
                         />
-                        {errors.email && <p className="text-red-600 mt-1">{errors.email}</p>}
+                        {errors.email && <p className="text-red-600 mt-1 text-sm">{errors.email}</p>}
                     </div>
                     <div>
                         <Input
@@ -81,7 +81,7 @@ export default function AddOwnerForm() {
                             value={formData.address}
                             onChange={handleChange}
                         />
-                        {errors.address && <p className="text-red-600 mt-1">{errors.address}</p>}
+                        {errors.address && <p className="text-red-600 mt-1 text-sm">{errors.address}</p>}
                     </div>
                     <button
                         type="submit"
