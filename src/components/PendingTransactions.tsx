@@ -1,142 +1,40 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ethers } from "ethers";
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, Clock } from "lucide-react";
+import { AlertTriangle, ArrowRight, FileText } from "lucide-react";
 import { useTransactionStatus } from "@/hooks/useTransactionStatus";
 import { useWallet } from "@/context/WalletContext";
 import TransactionService from "@/services/transaction-service";
 import { ITransaction, TransactionStatus } from "@/types";
 import Loader from "./Loader";
 import { sleep } from "@/helpers/common";
-import emailService from "@/services/email-service";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
 
 const transactionService = TransactionService.getInstance();
 
-export default function PendingTransactions({
-  onTransactionConfirmed,
-  onTransactionExecuted
-}: {
-  onTransactionConfirmed?: (txIndex: number) => void;
-  onTransactionExecuted ?: (txIndex: number) => void;
-}) {
-  const [transactions, setTransactions] = useState<ITransaction[]>([]);
+type PendingTransactionProps = {
+  initialTxs: ITransaction[], 
+  threshold: number;
+  onTransactionExecuted?: () => void;
+}
+
+export default function PendingTransactions({initialTxs, threshold, onTransactionExecuted}: PendingTransactionProps) {
+  const [transactions, setTransactions] = useState<ITransaction[]>(initialTxs);
   const [loading, setLoading] = useState<boolean>(false);
   const [refresh, setRefresh] = useState<number>(0);
-  const [threshold, setThreshold] = useState<number>(0);
   const { saveStatus, getStatus } = useTransactionStatus();
-  const { wallet, contract, currentAddress, isOwner } = useWallet(); 
+  const { wallet, contract, currentAddress, isOwner } = useWallet();
 
-  const handleConfirm = useCallback(async (txIndex: number) => {
-    if(!isOwner) return;
+  const { handleConfirm, handleExecute, handleCancel } = useTransactionActions({
+    isPendingTx: true,
+    saveStatus,
+    getStatus,
+    setTransactions,
+    transactions,
+    onTransactionExecuted
+  });
 
-    const currentStatus = getStatus(txIndex)?.status || '';
-    if (currentStatus.includes('confirming')) return;
-
-    try {
-      saveStatus(txIndex, 'confirming');
-
-      const txResponse = await contract!.confirmTransaction(txIndex);
-      saveStatus(txIndex, 'confirming-mined');
-
-      const receipt = await txResponse.wait();
-      
-      if (receipt.status === 1) {
-        saveStatus(txIndex, 'confirmed');
-        setTransactions(prevTxs => 
-        prevTxs.map(tx => 
-          tx.txIndex === txIndex
-            ? { 
-                ...tx, 
-                numConfirmations: tx.numConfirmations + 1,
-                isConfirmed: true 
-              }
-            : tx
-        )
-      );
-      const tx = transactions.find(tx => tx.txIndex === txIndex);
-      console.log("tx", tx)
-      if(tx){
-        emailService.confirm("john", {txIndex, value: tx.value, title: tx.title})
-      }
-
-        onTransactionConfirmed?.(txIndex);
-
-        return;
-      }
-      throw new Error('Transaction failed on-chain');
-    } catch (error) {
-      saveStatus(txIndex, 'confirm-failed');
-      throw error;
-    }
-  }, [saveStatus, getStatus, onTransactionConfirmed]);
-
-  const handleCancel = useCallback(async (txIndex: number) => {
-    if(!isOwner) return;
-
-    const currentStatus = getStatus(txIndex)?.status || '';
-    if (currentStatus.includes('cancelling')) return;
-
-    try {
-      saveStatus(txIndex, 'cancelling');
-
-      const txResponse = await contract!.cancelTransaction(txIndex);
-      saveStatus(txIndex, 'cancelling-mined');
-
-      const receipt = await txResponse.wait();
-      
-      if (receipt.status === 1) {
-        saveStatus(txIndex, 'cancelled');
-        setTransactions(prevTxs => 
-        prevTxs.map(tx => 
-          tx.txIndex === txIndex
-            ? { 
-                ...tx, 
-                cancelled: true 
-              }
-            : tx
-        )
-      );
-        // onTransactionConfirmed?.(txIndex);
-      }
-      throw new Error('Transaction failed on-chain');
-    } catch (error) {
-      saveStatus(txIndex, 'confirm-failed');
-      throw error;
-    }
-  }, [saveStatus, getStatus]);
-
-  const handleExecute = useCallback(async (txIndex: number) => {
-    if(!isOwner) return;
-    
-    const currentStatus = getStatus(txIndex)?.status || '';
-    if (currentStatus.includes('executing')) return;
-
-    try {
-      saveStatus(txIndex, 'executing');
-
-      const tx = await contract!.executeTransaction(txIndex, {
-        gasLimit: 300000,
-      });
-      saveStatus(txIndex, 'executing-mined');
-
-      const receipt = await tx.wait();
-      
-      if (receipt.status === 1) {
-        saveStatus(txIndex, 'executed');
-        const txs = [...transactions];
-      const updatedTxs = txs.filter(tx => tx.txIndex !== txIndex);
-      setTransactions(updatedTxs);
-        onTransactionExecuted?.(txIndex);
-
-        return;
-      }
-      throw new Error('Execution failed on-chain');
-    } catch (error) {
-      saveStatus(txIndex, 'execute-failed');
-      throw error;
-    }
-  }, [contract, saveStatus, getStatus, onTransactionExecuted]);
 
   const fetchTransactions = useCallback(async () => {
   if (!wallet || !contract || !currentAddress) return;
@@ -166,11 +64,10 @@ export default function PendingTransactions({
         };
       })
     )
+
+    console.log("txns", txns)
     
     setTransactions(txns);
-    
-    const _threshold = await contract.threshold();
-    setThreshold(Number(_threshold));
     
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -179,38 +76,9 @@ export default function PendingTransactions({
   }
 }, [contract, currentAddress]);
 
-  useEffect(() => {
-    fetchTransactions();
-
-    async function handleConfirmation() {
-  try {
-    const response = await fetch('/api/email/confirm', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        owner: 'john',
-        txDetail: {
-          txIndex: 'TX123456',
-          value: '$1,000.00',
-          title: 'Vendor payment'
-        }
-      }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
-    
-    alert('Confirmation email sent successfully!');
-  } catch (error) {
-    console.error('Failed to send email:', error);
-    alert('Failed to send email');
-  }
-}
-
-// handleConfirmation()
-  }, [fetchTransactions]);
+  // useEffect(() => {
+  //   fetchTransactions();
+  // }, [fetchTransactions]);
 
 
   if (loading && transactions.length === 0) {
@@ -219,7 +87,7 @@ export default function PendingTransactions({
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700">
-      <div className="p-6 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-700">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             {/* <Clock className="h-5 w-5 text-yellow-500" /> */}
@@ -241,7 +109,7 @@ export default function PendingTransactions({
                 const txStatus = getStatus(tx.txIndex)?.status;
 
               return (
-              <div key={tx.txIndex} className="flex items-center justify-between p-6">
+              <div key={tx.txIndex} className="flex items-center justify-between px-6 py-3">
                 <div className="flex items-center">
                   <AlertTriangle className="h-6 w-6 text-yellow-500 mr-3" />
                   <div>
@@ -257,17 +125,16 @@ export default function PendingTransactions({
                   {(tx.isConfirmed && tx.numConfirmations !== threshold) && <p className="text-yellow-500">Pending</p>}
                   {(!tx.isConfirmed && tx.status !== TransactionStatus.Cancelled) && (
                     <div className="flex gap-3">
-
                     <button
-                      onClick={() => handleConfirm(tx.txIndex)}
-                      disabled={txStatus?.includes('confirming') || loading}
-                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 text-white hover:bg-primary-500/80"
+                      onClick={(event) => handleConfirm(event, tx.txIndex)}
+                      disabled={txStatus?.includes('cancelling') || txStatus?.includes('confirming') || loading}
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10  text-white bg-green-400 hover:bg-green-400/80"
                     >
                       {txStatus?.includes('confirming') ? "Confirming..." : "Confirm"}
                     </button>
                     <button
-                      onClick={() => handleCancel(tx.txIndex)}
-                      disabled={txStatus?.includes('cancelling') || loading}
+                      onClick={(event) => handleCancel(event, tx.txIndex)}
+                      disabled={txStatus?.includes('confirming') || txStatus?.includes('cancelling') || loading}
                       className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-red-500 text-white hover:bg-red-500/80"
                     >
                       {txStatus?.includes('cancelling') ? "Cancelling..." : "Cancel"}
@@ -276,10 +143,10 @@ export default function PendingTransactions({
                   )}
                   {tx.numConfirmations >= threshold && (
                     <button
-                      onClick={() => handleExecute(tx.txIndex)}
+                      onClick={(event) => handleExecute(event, tx.txIndex)}
                             disabled={txStatus?.includes('executing') || loading}
 
-                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-green-400 hover:bg-green-400/80"
+                      className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 hover:bg-primary-500/80"
                     >
                       {txStatus?.includes('executing') ? "Executing..." : "Execute"}
                     </button>
@@ -289,9 +156,12 @@ export default function PendingTransactions({
             )})}
           </div>
         ) : (
-          <p className="text-gray-400 text-center py-4">
-            {transactions.length === 0 ? 'No transactions found' : 'No pending transactions'}
-          </p>
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-400">
+              {transactions.length === 0 ? 'No transactions found' : 'No pending transactions'}
+            </p>
+          </div>
         )}
       </div>
     </div>

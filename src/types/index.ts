@@ -33,3 +33,14 @@ export type IApiResponse = {
     message?: string;
     code?: number;
 }
+
+export type OwnerStatus = "pending" | "approved" | "rejected";
+
+export type IOwner = {
+  _id: string;
+  name: string;
+  email: string;
+  address: string;
+  status: OwnerStatus;
+  updatedAt: string;
+}

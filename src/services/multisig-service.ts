@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, JsonRpcProvider } from "ethers";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "@/config";
 
 export class MultiSigService {
@@ -47,6 +47,11 @@ export class MultiSigService {
         }
     }
 
+    public static getReadOnlyContract(): ethers.Contract {
+        const provider = new JsonRpcProvider("https://eth-sepolia.g.alchemy.com/v2/nEdWHAIQiIv82oxqY8qH9pt7R4Wio3vh");
+        return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+    }
+
     public getProvider(): ethers.Provider {
         return this.provider;
     }
@@ -70,6 +75,19 @@ export class MultiSigService {
     public parseEther(ether: string): bigint {
         return ethers.parseEther(ether);
     }
+
+    public async checkContractBalance(amount: string): Promise<boolean> {
+    try {
+        const stats = await this.contract.getTransactionStats();
+        const contractBalanceWei = stats[0];
+        const requiredWei = ethers.parseEther(amount);
+        
+        return contractBalanceWei >= requiredWei;
+    } catch (error) {
+        console.error("Failed to check balance:", error);
+        return false;
+    }
+    };
 
     public async isDeployer(): Promise<boolean> {
         try {

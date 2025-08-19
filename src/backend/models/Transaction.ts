@@ -35,7 +35,4 @@ const TransactionSchema = new Schema<ITransaction>(
   }
 );
 
-const Transaction =
-  models.Transaction || model<ITransaction>("Transaction", TransactionSchema);
-
-export default Transaction;
+export default models.Transaction || model<ITransaction>("Transaction", TransactionSchema);

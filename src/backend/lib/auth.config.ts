@@ -1,6 +1,8 @@
-import NextAuth, { AuthOptions, Session } from "next-auth";
+import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { SiweMessage } from "siwe";
+import Owner from "../models/Owner";
+import { dbConnect } from "./db";
 
 declare module "next-auth" {
   interface Session {
@@ -62,7 +64,16 @@ const authOptions: AuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id
+        await dbConnect();
+        
+        const userAddress = user.id.toLowerCase();
+        const exists = await Owner.exists({ 
+          address: userAddress, 
+          status: "approved" 
+        });
+
+        token.sub = user.id,
+        token.isOwner = !!exists;
       }
       return token
     }

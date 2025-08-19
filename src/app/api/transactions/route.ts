@@ -1,5 +1,5 @@
 import authOptions from "@/backend/lib/auth.config";
-import { connectToDatabase } from "@/backend/lib/db";
+import { dbConnect } from "@/backend/lib/db";
 import Transaction from "@/backend/models/Transaction";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     }
 
 
-    await connectToDatabase();
+    await dbConnect();
 
     const newTx = await Transaction.create({ txIndex, title, txHash, submittedBy });
 
@@ -54,7 +54,7 @@ export async function GET() {
       }
 
 
-    await connectToDatabase();
+    await dbConnect();
 
     const transactions = await Transaction.find({}).sort({ createdAt: -1 });
 

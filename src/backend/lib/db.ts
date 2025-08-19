@@ -23,7 +23,7 @@ if (!global.mongooseConnection) {
   global.mongooseConnection = cached;
 }
 
-export async function connectToDatabase(): Promise<Connection> {
+export async function dbConnect(): Promise<Connection> {
   if (cached.conn) return cached.conn;
 
   const uri = IS_STAGING_ENVIROMENT ? LOCALDB_URI : MONGODB_URI;
@@ -48,18 +48,6 @@ export async function connectToDatabase(): Promise<Connection> {
   }
 
   cached.conn = await cached.promise;
-
-  cached.conn.on("connected", () => {
-    console.log("Mongoose connected to DB");
-  });
-
-  cached.conn.on("error", (err) => {
-    console.error("Mongoose connection error:", err);
-  });
-
-  cached.conn.on("disconnected", () => {
-    console.log("Mongoose disconnected from DB");
-  });
 
   return cached.conn;
 }

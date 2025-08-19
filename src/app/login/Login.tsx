@@ -7,11 +7,13 @@ import { logInWithEthereum } from '@/lib/siwe-client';
 import { WalletProvider } from '@/lib/wallet-provider';
 import { MultiSigService } from '@/services/multisig-service';
 import VerifyAccount from '@/components/VerifyAccount';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const [showModal, setShowModal] = useState(false);
   const [hasWallet, setHasWallet] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.ethereum) {
@@ -31,8 +33,15 @@ export default function Login() {
     }
 
     await MultiSigService.initialize();
-    await logInWithEthereum();
-    setIsSubmitted(false)
+    
+    const loginSuccess = await logInWithEthereum();
+
+    if (loginSuccess) {
+      router.push("/");
+    } else {
+      setIsSubmitted(false);
+    } 
+    
   };
 
 

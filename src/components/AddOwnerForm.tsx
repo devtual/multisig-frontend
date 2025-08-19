@@ -3,13 +3,12 @@ import { useState } from "react";
 import ownerService from "@/services/owner-service";
 import { addOwnerSchema } from "@/schemas";
 import Input from "./Input";
+import { Notification, NotificationType } from "@/helpers/notification";
 
 export default function AddOwnerForm() {
     const [formData, setFormData] = useState({ name: "", email: "", address: "" });
-    const [message, setMessage] = useState("");
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [isError, setIsError] = useState(false);
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,9 +20,7 @@ export default function AddOwnerForm() {
         e.preventDefault();
         setIsSubmitted(true)
 
-        setMessage("");
         setErrors({});
-        setIsError(false);
 
         const result = addOwnerSchema.safeParse(formData);
 
@@ -33,6 +30,7 @@ export default function AddOwnerForm() {
             result.error.issues.forEach((err: any) => {
                 if (err.path.length > 0) fieldErrors[err.path[0]] = err.message;
             });
+
             setErrors(fieldErrors);
             setIsSubmitted(false)
             return;
@@ -40,10 +38,10 @@ export default function AddOwnerForm() {
 
         const res = await ownerService.addOwner(formData);
         if (!res.status) {
-            setMessage(res.message!);
-            setIsError(true)
+            Notification.show(res.message!, NotificationType.Error)
         } else {
-            setMessage("Request sent successfully!");
+            Notification.show("Request sent successfully!", NotificationType.Success)
+
             setFormData({ name: "", email: "", address: "" });
         }
 
@@ -90,10 +88,9 @@ export default function AddOwnerForm() {
                         className="flex items-center justify-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-md disabled:opacity-50"
                         disabled={isSubmitted}
                     >
-                        {isSubmitted ? "Loading..." : "Submit"}
+                        {isSubmitted ? "Submitting..." : "Submit"}
                     </button>
                 </form>
-                {message && <p className={isError ? "mt-4 text-red-600" : "mt-4 text-green-600"}>{message}</p>}
             </div>
         </div>
     );

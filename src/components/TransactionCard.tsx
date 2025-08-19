@@ -7,18 +7,20 @@ import { dateFormat } from '@/helpers/common';
 type TransactionCardProps = {
   transaction: ITransaction;
   threshold: number;
-  onConfirm?: (txIndex: number) => void;
-  onExecute?: (txIndex: number) => void;
-  onCancel?: (txIndex: number) => void;
+  onClick?: (tx: ITransaction) => void;
+  onConfirm?: (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => void;
+  onExecute?: (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => void;
+  onCancel?: (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => void;
   status?: string;
   isOwner: boolean;
 };
 
-const tnxStatus = ["pending", "processing", "completed", "failed", "cancelled", "expired"];
+const txStatus = ["pending", "processing", "completed", "failed", "cancelled", "expired"];
 
 export const TransactionCard = ({
   transaction,
   threshold,
+  onClick,
   onConfirm,
   onExecute,
   onCancel,
@@ -32,23 +34,24 @@ export const TransactionCard = ({
 
 
   return (
-    <div className="p-6 hover:bg-gray-750 transition-colors">
+    <div className="p-4 hover:bg-gray-750 cursor-pointer transition-colors" 
+      onClick={() => onClick?.(transaction)}
+      role="button">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center">
-            <TransactionStatusIcon status={tnxStatus[transaction.status]} />
+            <TransactionStatusIcon status={txStatus[transaction.status]} />
           </div>
 
           <div>
             <div className="flex items-center space-x-2">
               <h3 className="font-medium text-white">{transaction.value} ETH</h3>
-              <TransactionStatusBadge status={tnxStatus[transaction.status]} />
+              <TransactionStatusBadge status={txStatus[transaction.status]} />
             </div>
             <p className="text-sm text-gray-400">{transaction.title}</p>
-            <div className="flex items-center space-x-4 mt-1">
-              {/* <span className="text-xs text-gray-500">From: {transaction.from}</span> */}
+            {/* <div className="flex items-center space-x-4 mt-1">
               <span className="text-xs text-gray-500">To: {shortenedAddress(transaction.to)}</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -61,19 +64,20 @@ export const TransactionCard = ({
                   Signatures: {transaction.numConfirmations}/{threshold}
                 </span>
               </div>
-              {isOwner && <div className="flex items-end gap-3 mt-3">
+              {isOwner && <div className="flex justify-end gap-3 mt-3">
                 {!transaction.isConfirmed && (
                   <>
                   <button
-                    onClick={() => onConfirm?.(transaction.txIndex)}
-                    disabled={status?.includes("confirming")}
-                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 text-white hover:bg-primary-500/80'
+                    onClick={(event) => onConfirm?.(event, transaction.txIndex)}
+                    disabled={status?.includes("confirming") || status?.includes('cancelling')}
+                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-green-500 text-white hover:bg-green-500/80'
                   >
                     {status?.includes("confirming") ? "Confirming..." : "Confirm"}
                   </button>
+                  
                   <button
-                      onClick={() => onCancel?.(transaction.txIndex)}
-                      disabled={status?.includes('cancelling')}
+                      onClick={(event) => onCancel?.(event, transaction.txIndex)}
+                      disabled={status?.includes("confirming") || status?.includes('cancelling')}
                       className="text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-red-500 text-white hover:bg-red-500/80"
                     >
                       {status?.includes('cancelling') ? "Cancelling..." : "Cancel"}
@@ -82,9 +86,9 @@ export const TransactionCard = ({
                 )}
                 {transaction.numConfirmations >= threshold && (
                   <button
-                    onClick={() => onExecute?.(transaction.txIndex)}
+                    onClick={(event) => onExecute?.(event, transaction.txIndex)}
                     disabled={status?.includes("executing")}
-                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-green-400 text-white hover:bg-green-400/80'
+                    className='text-sm cursor-pointer px-2 py-1 rounded-md min-w-10 bg-primary-500 text-white hover:bg-primary-500/80'
                   >
                     {status?.includes("executing") ? "Executing..." : "Execute"}
                   </button>

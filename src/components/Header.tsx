@@ -10,7 +10,7 @@ const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
   { path: '/transactions', icon: FileText, label: 'Transactions' },
   { path: '/fund', icon: Wallet, label: 'Fund' },
-  { path: '/add-owner', icon: User, label: 'Submit Request'}
+  { path: '/submit-request', icon: User, label: 'Submit Request'}
   // { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 

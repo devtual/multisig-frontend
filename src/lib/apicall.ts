@@ -2,7 +2,7 @@ import { API_ENDPOINT } from "@/config";
 import { sleep } from "@/helpers/common";
 import { IApiResponse } from "@/types";
 
-type HttpMethod = "POST" | "GET";
+type HttpMethod = "POST" | "PATCH" | "GET";
 
 export class ApiCall {
     static instance: ApiCall;

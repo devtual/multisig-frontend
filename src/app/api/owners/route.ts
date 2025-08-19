@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Owner from "@/backend/models/Owner";
-import { connectToDatabase } from "@/backend/lib/db";
+import { dbConnect } from "@/backend/lib/db";
 import { sendOwnerReqEmail } from "@/backend/lib/email";
+import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { name, email, address } = await req.json();
 
@@ -14,19 +18,18 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        await connectToDatabase();
+        await dbConnect();
 
         const ownerExists = await Owner.findOne({
             $or: [{ email }, { address: address.toLowerCase() }],
         });
 
         if (ownerExists) {
-        return NextResponse.json(
-            { message: "Owner already exists" },
-            { status: 400 }
-        );
+            return NextResponse.json(
+                { message: "Owner already exists" },
+                { status: 400 }
+            );
         }
-
 
         const newOwner = await Owner.create({
             name,
@@ -35,7 +38,9 @@ export async function POST(req: NextRequest) {
             status: "pending",
         });
 
-        await sendOwnerReqEmail(name, email);
+        sendOwnerReqEmail(name, email);
+
+        await session.commitTransaction();
 
         return NextResponse.json(
             { message: "Owner added", owner: newOwner },
@@ -43,24 +48,13 @@ export async function POST(req: NextRequest) {
         );
     } catch (error) {
         console.log("Error", error)
+        await session.abortTransaction();
+
         return NextResponse.json(
             { message: "Failed to create owner" },
             { status: 500 }
         );
-    }
-}
-
-export async function GET() {
-    try {
-        await connectToDatabase();
-
-        const owners = await Owner.find();
-
-        return NextResponse.json({ owners }, { status: 200 });
-    } catch (error) {
-        return NextResponse.json(
-            { message: "Failed to fetch owners" },
-            { status: 500 }
-        );
+    } finally {
+        session.endSession();
     }
 }

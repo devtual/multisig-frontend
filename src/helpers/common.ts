@@ -21,3 +21,11 @@ export function formatBalance(bal: string | number) {
   const [intPart] = bal.toString().split(".");
   return Number(bal).toFixed(intPart.length > 2 ? 4 : 6);
 }
+
+export function formatAddress(address: string){
+  if(typeof address === 'string' && address.startsWith('0x')){
+    return `${address.slice(0, 7)}...${address.slice(-5)}`;
+  };
+
+  return address;
+}

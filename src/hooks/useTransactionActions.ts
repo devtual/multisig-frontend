@@ -1,82 +1,166 @@
-import { useCallback } from 'react';
-import { useTransactionStatus } from './useTransactionStatus';
-import { useWallet } from '@/context/WalletContext';
+import { useWallet } from "@/context/WalletContext";
+import emailService from "@/services/email-service";
+import { ITransaction, TransactionStatus } from "@/types";
+import { useCallback } from "react";
 
-type TransactionCallbacks = {
-  onConfirmed?: (txIndex: number) => void;
-  onExecuted?: (txIndex: number) => void;
-  onSaveStatus?: (txIndex: number, status: string) => void;
-};
-
-export function useTransactionActions(
-  callbacks?: TransactionCallbacks
-) {
-  const { saveStatus, getStatus } = useTransactionStatus();
-  const { contract } = useWallet();
-
-  const handleConfirm = useCallback(async (txIndex: number) => {
-    const currentStatus = getStatus(txIndex)?.status || '';
-    if (currentStatus.includes('confirming')) return;
-
-    try {
-      saveStatus(txIndex, 'confirming');
-
-      const txResponse = await contract!.confirmTransaction(txIndex);
-      saveStatus(txIndex, 'confirming-mined');
-
-      const receipt = await txResponse.wait();
-      
-      if (receipt.status === 1) {
-        saveStatus(txIndex, 'confirmed');
-        callbacks?.onConfirmed?.(txIndex);
-        return true;
-      }
-      throw new Error('Transaction failed on-chain');
-    } catch (error) {
-      saveStatus(txIndex, 'confirm-failed');
-      throw error;
-    }
-  }, [saveStatus, getStatus, callbacks?.onConfirmed]);
-
-  const handleExecute = useCallback(async (txIndex: number) => {
-    const currentStatus = getStatus(txIndex)?.status || '';
-    if (currentStatus.includes('executing')) return;
-
-    try {
-      saveStatus(txIndex, 'executing');
-
-      const tx = await contract!.executeTransaction(txIndex, {
-        gasLimit: 300000,
-      });
-      saveStatus(txIndex, 'executing-mined');
-
-      const receipt = await tx.wait();
-      
-      if (receipt.status === 1) {
-        saveStatus(txIndex, 'executed');
-        callbacks?.onExecuted?.(txIndex);
-        return true;
-      }
-      throw new Error('Execution failed on-chain');
-    } catch (error) {
-      saveStatus(txIndex, 'execute-failed');
-      throw error;
-    }
-  }, [contract, saveStatus, getStatus, callbacks?.onExecuted]);
-
-  const getButtonState = (txIndex: number, action: 'confirm' | 'execute') => {
-    const status = getStatus(txIndex)?.status || '';
-    return {
-      disabled: status.includes(`${action}ing`),
-      text: status.includes(`${action}ing`) 
-        ? `${action.charAt(0).toUpperCase() + action.slice(1)}ing...` 
-        : action === 'confirm' ? 'Sign Transaction' : 'Execute'
-    };
-  };
-
-  return {
-    handleConfirm,
-    handleExecute,
-    getButtonState
-  };
+type UseTransactionActionsProps = {
+  saveStatus: (txIndex: number, status: string) => void;
+  getStatus: (txIndex: number) => { status: string } | undefined;
+  setTransactions: React.Dispatch<React.SetStateAction<ITransaction[]>>;
+  transactions: ITransaction[];
+  isPendingTx?: boolean;
+  onTransactionExecuted?: () => void; // required
 }
+
+export const useTransactionActions = ({
+  saveStatus,
+  getStatus,
+  setTransactions,
+  transactions,
+  isPendingTx = false,
+  onTransactionExecuted
+}: UseTransactionActionsProps) => {
+
+  const {contract, isOwner, provider, currentAddress} = useWallet()
+  const handleConfirm = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => {
+      event.stopPropagation();
+      if (!isOwner) return;
+
+      const currentStatus = getStatus(txIndex)?.status || '';
+      if (currentStatus.includes('confirming')) return;
+
+      try {
+        saveStatus(txIndex, 'confirming');
+        const txResponse = await contract!.confirmTransaction(txIndex);
+        saveStatus(txIndex, 'confirming-mined');
+
+        const receipt = await txResponse.wait();
+
+        if (receipt.status === 1) {
+          saveStatus(txIndex, 'confirmed');
+          setTransactions(prevTxs =>
+            prevTxs.map(tx =>
+              tx.txIndex === txIndex
+                ? {
+                    ...tx,
+                    numConfirmations: tx.numConfirmations + 1,
+                    isConfirmed: true
+                  }
+                : tx
+            )
+          );
+
+          const tx = transactions.find(tx => tx.txIndex === txIndex)!;
+          emailService.confirm(currentAddress, {txIndex, value: tx.value, title: tx.title})
+          
+          return;
+        }
+        throw new Error('Transaction failed on-chain');
+      } catch (error) {
+        saveStatus(txIndex, 'confirm-failed');
+        throw error;
+      }
+    },
+    [contract, isOwner, saveStatus, getStatus, setTransactions]
+  );
+
+  const handleExecute = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => {
+      event.stopPropagation();
+      if (!isOwner) return;
+
+      const currentStatus = getStatus(txIndex)?.status || '';
+      if (currentStatus.includes('executing')) return;
+
+      try {
+        saveStatus(txIndex, 'executing');
+        const txResponse = await contract!.executeTransaction(txIndex, {
+          gasLimit: 300000
+        });
+        saveStatus(txIndex, 'executing-mined');
+
+        const receipt = await txResponse.wait();
+
+        if (receipt.status === 1 && provider) {
+          const block: any = await provider.getBlock(receipt.blockNumber);
+          const timestamp = block.timestamp;
+
+          const tx = transactions.find(tx => tx.txIndex === txIndex)!;
+          emailService.execute(currentAddress, {txIndex, value: tx.value, title: tx.title})
+          
+          saveStatus(txIndex, 'executed');
+
+          if(isPendingTx){
+            const txs = [...transactions];
+            const updatedTxs = txs.filter(tx => tx.txIndex !== txIndex);
+            setTransactions(updatedTxs);
+            onTransactionExecuted?.();
+            return;
+          } 
+
+          onTransactionExecuted?.();
+          
+          setTransactions(prevTxs =>
+            prevTxs.map(tx =>
+              tx.txIndex === txIndex
+                ? {
+                  ...tx,
+                  timestamp,
+                  status: TransactionStatus.Completed
+                }
+                : tx
+            )
+          )
+          return;
+        }
+
+        throw new Error('Execution failed on-chain');
+      } catch (error) {
+        saveStatus(txIndex, 'execute-failed');
+        throw error;
+      }
+    },
+    [contract, isOwner, saveStatus, getStatus, setTransactions, transactions, provider]
+  );
+
+  const handleCancel = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>, txIndex: number) => {
+      event.stopPropagation();
+      if (!isOwner) return;
+
+      const currentStatus = getStatus(txIndex)?.status || '';
+      if (currentStatus.includes('cancelling')) return;
+
+      try {
+        saveStatus(txIndex, 'cancelling');
+        const txResponse = await contract!.cancelTransaction(txIndex);
+        saveStatus(txIndex, 'cancelling-mined');
+
+        const receipt = await txResponse.wait();
+
+        if (receipt.status === 1) {
+          saveStatus(txIndex, 'cancelled');
+          setTransactions(prevTxs =>
+            prevTxs.map(tx =>
+              tx.txIndex === txIndex
+                ? {
+                    ...tx,
+                    cancelled: true
+                  }
+                : tx
+            )
+          );
+          return;
+        }
+        throw new Error('Transaction failed on-chain');
+      } catch (error) {
+        saveStatus(txIndex, 'confirm-failed');
+        throw error;
+      }
+    },
+    [contract, isOwner, saveStatus, getStatus, setTransactions]
+  );
+
+  return { handleConfirm, handleExecute, handleCancel };
+};

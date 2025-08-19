@@ -30,15 +30,17 @@ export async function logInWithEthereum() {
       message: JSON.stringify(message),
       signature,
       redirect: false,
-      callbackUrl: "/dashboard"
+      callbackUrl: "/"
     })
 
     if (res?.ok) {
-      window.location.href = "/";
+      return true;
     } else {
       console.error("SIWE login failed", res?.error);
+      return false;
     }
   } catch (error) {
     console.log("Error", error)
+    return false;
   }
 }

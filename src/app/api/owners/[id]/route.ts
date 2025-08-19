@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/backend/lib/db";
+import { dbConnect } from "@/backend/lib/db";
 import Owner from "@/backend/models/Owner";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             );
         }
 
-        await connectToDatabase();
+        await dbConnect();
 
         const updatedOwner = await Owner.findByIdAndUpdate(
             id,

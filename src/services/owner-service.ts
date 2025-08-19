@@ -1,5 +1,5 @@
 import { ApiCall } from "@/lib/apicall";
-import { IApiResponse } from "@/types";
+import { IApiResponse, IOwner } from "@/types";
 
 export class OwnerService {
     private static instance: OwnerService;
@@ -24,13 +24,41 @@ export class OwnerService {
         return await this.apiCall.post("api/owners", data);
     }
 
-    public async getOwners(): Promise<IApiResponse> {
-        return await this.apiCall.get("api/owners", {});
+    public async updateOwnerStatus(id: string, status: string): Promise<IApiResponse> {
+        return await this.apiCall.post(`api/owners/${id}`, { status }, false, "PATCH");
     }
 
     public async getOwnerByAddress(address: string): Promise<IApiResponse> {
         return await this.apiCall.get(`api/owners/${address}`, {});
     }
+
+    public async mergeOwners(onChainOwners: string[], dbOwners: any[]) {
+        const chainAddresses = new Set(
+            onChainOwners.map(addr => addr.toLowerCase())
+        );
+
+        return dbOwners.map(dbOwner => {
+            const normalizedDbAddress = dbOwner.address.toLowerCase();
+            const isOnChain = chainAddresses.has(normalizedDbAddress);
+
+            return {
+                ...dbOwner,
+                _id: dbOwner._id.toString(),
+                status: isOnChain ? 'approved' : dbOwner.status || 'pending',
+                updatedAt: new Date(dbOwner.updatedAt).toISOString()
+            };
+        });
+    }
+
+    public async getOnChainOwners(onChainAddresses: string[], dbOwners: any[], limit?: number){
+        const chainAddresses = new Set(
+            onChainAddresses.map(addr => addr.toLowerCase())
+        );
+
+        const owners = dbOwners.filter(dbOwner => chainAddresses.has(dbOwner.address.toLowerCase()));
+        return limit ? owners.slice(0, limit) : owners;
+    }
+
 }
 
 export default OwnerService.getInstance();

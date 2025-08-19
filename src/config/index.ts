@@ -1,7 +1,8 @@
 import abi from '@/lib/abi.json'
 
 export const APP_NAME = "Tresis Wallet";
-export const IS_STAGING_ENVIROMENT = false;
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL!;
+export const IS_STAGING_ENVIROMENT = true;
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!;
 export const CONTRACT_ABI = abi;
 export const DB_NAME = process.env.DB_NAME!;
