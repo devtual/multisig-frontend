@@ -63,7 +63,7 @@ export default function ContractFunding() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-8 bg-gray-800 rounded-lg border border-gray-700">
+    <div className="max-w-md mx-auto p-8 mt-10 bg-gray-800 rounded-lg border border-gray-700">
       <h2 className="text-xl font-semibold mb-4">Fund Contract</h2>
       
       <div className="mb-4">

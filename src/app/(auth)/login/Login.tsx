@@ -37,7 +37,8 @@ export default function Login() {
     const loginSuccess = await logInWithEthereum();
 
     if (loginSuccess) {
-      router.push("/");
+      console.log("loginSuccess")
+      router.replace("/");
     } else {
       setIsSubmitted(false);
     } 
@@ -46,7 +47,7 @@ export default function Login() {
 
 
   return (
-    <div className="flex items-center justify-center px-4 pt-10 z-50">
+    <div className="flex grow items-center justify-center px-4 py-10 z-50">
       <div className="border border-gray-700 bg-gray-800 overflow-hidden rounded-2xl shadow-xl w-full max-w-sm px-6 py-10 relative">
         <div className="flex flex-col items-center mb-6">
           <div className="bg-primary-500/20 rounded-full p-3">

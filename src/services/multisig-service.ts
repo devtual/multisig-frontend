@@ -98,6 +98,16 @@ export class MultiSigService {
         }
     }
 
+    public async isOwner(): Promise<boolean> {
+        try {
+            const address = this.getCurrentAccount();
+            return await this.contract.isOwner(address);
+        } catch (error) {
+            console.error("Failed to check owner status", error);
+            return false;
+        }
+    }
+
     public async getContractBalance(): Promise<string> {
         try {
             const balance = await this.contract.getBalance();

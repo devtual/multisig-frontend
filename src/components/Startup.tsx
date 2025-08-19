@@ -49,8 +49,6 @@ export default function Startup({ children }: { children: React.ReactNode }) {
 
       if (!success) return;
 
-      
-        
       const wallet = MultiSigService.getInstance();
       const [contract, provider, isDeployer] = await Promise.all([
         wallet.getContract(),
@@ -82,8 +80,10 @@ export default function Startup({ children }: { children: React.ReactNode }) {
     }
   };
 
+  console.log("Startup init")
+
   initWallet();
-}, [pathname]);
+}, []);
 
 
   if (loading) {
@@ -98,12 +98,7 @@ export default function Startup({ children }: { children: React.ReactNode }) {
 
   return (
     <WalletContext.Provider value={{wallet, contract, currentAddress, provider, isDeployer, isOwner }}>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <Header isDeployer={isDeployer} />
-        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          {children}
-        </main>
-      </div>
+      {children}
     </WalletContext.Provider>
   );
 }

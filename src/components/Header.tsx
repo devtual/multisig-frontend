@@ -1,3 +1,4 @@
+"use client"
 import Link from 'next/link'
 import React from 'react'
 import { Wallet, FileText, Home, User } from 'lucide-react';
@@ -5,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import logo from "../../public/logo.svg"
 import Image from 'next/image';
+import { useWallet } from '@/context/WalletContext';
 
 const navItems = [
   { path: '/', icon: Home, label: 'Dashboard' },
@@ -14,7 +16,8 @@ const navItems = [
   // { path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
-export default function Header({ isDeployer }: { isDeployer: boolean }) {
+export default function Header() {
+  const {isDeployer} = useWallet();
   const pathname = usePathname();
   const { data: session } = useSession()
 

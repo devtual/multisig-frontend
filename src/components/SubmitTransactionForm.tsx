@@ -178,7 +178,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="title" title="Title" />
+              <Label htmlFor="title" title="Title" className="block" />
               <Input
                 id="title"
                 name="title"
@@ -190,8 +190,10 @@ const SubmitTransactionForm: React.FC<Props> = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="amount" title="Amount (ETH)" />
-                <p className="text-gray-400">≈ {usdtValue} USDT</p>
+                
+                  <Label htmlFor="amount" title="Amount (ETH)" />
+                
+                <p className="text-gray-400 text-sm leading-3.5">≈ {usdtValue} USDT</p>
               </div>
               <Input
                 id="amount"
@@ -207,7 +209,7 @@ const SubmitTransactionForm: React.FC<Props> = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recipient" title="Recipient Address" />
+            <Label htmlFor="recipient" title="Recipient Address" className="block" />
             <Input
               id="recipient"
               placeholder="0x..."
