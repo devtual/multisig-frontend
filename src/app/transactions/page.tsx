@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function TransactoinsPage({searchParams}: {
-  searchParams: { page?: string }
+  searchParams: Promise<{ page?: string }>
 }) {
   const {page} = await searchParams;
   const {transactions, totalCount, threshold, txRecords } = await getTransactions(Number(page) || 1);
