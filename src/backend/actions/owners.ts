@@ -45,3 +45,43 @@ export async function addDeployerAsOwner() {
     return { message: "Failed to add deployer as owner", status: false };
   }
 }
+
+export async function mergeOwners(onChainOwners: string[], dbOwners: any[]) {
+  const chainAddresses = new Set(
+    onChainOwners.map(addr => addr.toLowerCase())
+  );
+
+  const updates: Promise<any>[] = [];
+
+  const merged = dbOwners.map(dbOwner => {
+    const normalizedDbAddress = dbOwner.address.toLowerCase();
+    const isOnChain = chainAddresses.has(normalizedDbAddress);
+
+    const newStatus = isOnChain ? "approved" : (dbOwner.status || "pending");
+
+    // only update DB if status changed
+    if (dbOwner.status !== newStatus) {
+      updates.push(
+        Owner.updateOne(
+          { _id: dbOwner._id },
+          { $set: { status: newStatus, updatedAt: new Date() } }
+        )
+      );
+    }
+
+    return {
+      ...dbOwner,
+      _id: dbOwner._id.toString(),
+      status: newStatus,
+      updatedAt: new Date(dbOwner.updatedAt).toISOString()
+    };
+  });
+
+  // apply DB updates
+  if (updates.length > 0) {
+    await Promise.all(updates);
+  }
+
+  return merged;
+}
+
